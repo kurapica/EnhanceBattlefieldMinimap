@@ -1,0 +1,208 @@
+2018/08/30 v075
+	1. Fix the party and raid member's scale.
+
+2018/08/23 v074
+	1. /ebfm worldquest [0.1-2] - added to change the world quest icon's scale, default 0.5
+	2. the world quest icon should show the reward.
+
+2018/08/22 v073
+	1. The player arrow should be displayed above other icons.
+
+2018/07/31 v072
+	1. /ebfm arealabel [0.1-4] - added to change the area label's size
+
+2018/07/29 v071
+	1. the zone text's size will be auto-changed based on the text.
+	2. the minimap player arrow would be hidden, so there won't be two player arrow displayed.
+
+2018/07/29 v069
+	1. /ebfm player 1.2 - added to change the player's arrow.
+	2. You can use mousewheel to change the zone text's size.
+
+2018/07/29 v068
+	1. Zone text added
+
+2018/07/29 v067
+	1. Fix the minimap's border won't shown when send it back
+
+2018/07/28 v066
+	1. fix the error if not load the battfield map when entering the game
+
+2018/07/27 v065
+	1. Reduce the memory leak caused by blz's map method, you may still got some memory leak, because blz calc its memory cost into the EBFM.
+
+2018/07/24 v064
+	1. Add support to HandyNotes
+
+2018/07/22 v063
+	1. Add support to toggle the map in the dungeon
+
+2018/07/22 v061
+	1. Fix the Minimap's FrameLevel
+
+2018/07/21 v058
+	1. Update for 8.0, several features canceled
+
+2018/03/29 v056
+	1. Fix code error that would cause the memory increment
+
+2018/03/28 v055
+	1. Update for new PLoop & Scorpio
+
+2017/02/09 v054
+	1. "/ebfm unit [0.1-10]" command added to change the unit mark's scale, like the player arrow.
+
+2017/12/26 v053
+	1. Fix the WorldMapTooltip won't be restored.
+
+2017/12/14 v052
+	1. It seems there is no need to hide the minimap's player icon when turn on the incminimap.
+
+2017/12/14 v051
+	1. Fix the zone map won't fit to all window if the ebfm scroll form is resized by other addons(ChatTabBind as example).
+
+2017/12/13 v050
+	1. The landmarks won't block the area's toggling.
+	2. '/ebfm incminimap always' added to make sure the minimap always be kept in the BattlefieldMinimap.
+	3. '/ebfm opacity [0-1]/off' added to fix the opacity settings reset by blz.
+
+2017/12/12 v049
+	1. Block the blz's action to toggle map to wrong area on landmarks.
+
+2017/12/10 v047
+	1. Fix the border don't hide when close the battlefieldminimap.
+
+2017/12/04 v046
+	1. Border added.
+	2. /ebfm color r, g, b[, a] added to modify the board's color.
+
+2017/11/21 v045
+	1. Fix the Minimap's FrameStrata to make sure it's above the BattlefieldMinimap.
+
+2017/11/06 v044
+	1. You can right-click boss encouter to hide it until you quit or reload. It'd block the battle field of the boss fight.
+
+2017/10/26 v042
+	1. The cosmic map is unexpected shown in dungeon, fixed now.
+	2. The minimap will be hidden when incminimap on and player is in dungeon, you can shift+M close the battlefield minimap to toggle them.
+
+2017/10/25 v041
+	1. new '/ebfm nodungeon on/off' command, used to auto-hide the battlefield minimap when in dungeon, since the player's location can't be found.
+
+2017/10/25 v039
+	1. new '/ebfm incminimap on/off' command, used to include the minimap to show mines/herbs and other POIs that can't be displayed by the battlefield minimap. It's a trick features, so default off, and may not works well with your minimap addons.
+
+2017/09/16 v038
+	1. Add toggle map support for new argus.
+
+2017/09/02 v037
+	1. Fix the portal's icon.
+
+2017/06/28 v035
+	1. The hide when dis-mount support druid now.
+	2. Some world quest's icon is replaced by the reward.
+
+2017/06/26 v033
+	1. the minimap won't hide when your mouse is over it.
+
+2017/06/26 v032
+	1. /ebfm nodismount on/off is added, if turn on the minimap will only show when the player is mounted.
+
+2017/05/30 v031
+	1. Fix the scale of the vehicles.
+
+2017/05/11 v030
+	1. Disable the quest story POI and graveyard poi when out of the window.
+
+2017/05/06 v029
+	1. Fix error when encounter end and the BattleFieldMinimap not loaded.
+
+2017/04/28 v028
+	1. Fix error triggered when BattleFieldMinimap not loaded and open the worldmap.
+
+2017/04/17 v027
+	1. Fix error when log in with combat.
+	2. Fix the taint error.
+
+2017/04/13 v026
+	1. Fix boss encounter tip and usable.
+
+2017/04/12 v025
+	1. Fix the enable/disable for scaled settings.
+
+2017/04/11 v024
+	1. When POIs is outside the window, they'll still catch the mouse action, so it'll show the tooltip or block other mouse action, so a rect check is added to enable/disable those pois.
+
+2017/04/02 v023
+	1. Delay 1 sec to refresh land marks seems a bad idea, change the logic to smooth it.
+
+2017/04/01 v022
+	1. Click to move ability is canceled, instead of it, right-click the minimap will zoom out like world map, left click will be used to change the zone, other buttons like middle-button will be used to change back to the current zone.
+
+	2. Fix lock player in the center not work when on taxi.
+
+2017/03/31 v021
+	1. The minimap will only keep the player in the center when player is moving.
+
+2017/03/31 v020
+	1. "/ebfm scale 1.0" (0.1-10) command added, used to scale the POIs' size.
+
+2017/03/30 v019
+	1. Reduce memory increasement.
+
+2017/03/30 v018
+	1. Label will be displayed for land marks.
+
+2017/03/30 v017
+	1. Fix for 7.2.0
+	2. Scenario marks and blobs added.
+
+2017/03/20 v016
+	1. Fix error when quit the game if you don't use the BattlefieldMinimap.
+
+2017/03/13 v015
+	1. Fix an error if you don't use the BattlefieldMinimap.
+
+2017/03/12 v014
+	1. Fix the tip won't show for world quest.
+
+2017/03/09 v013
+	1. The coords of the curosr would be displayed if your mouse is in the minimap.
+
+2017/03/08 v012
+	1. Hide the origin POI.
+
+2017/03/08 v011
+	1. Make the boss icon more smaller.
+	2. Hide the boss icon during boss-fighting.
+
+2017/03/08 v010
+	1. Smooth the animation if you click the minimap twice in a very shor time.
+	2. Keep show the BattlefieldMinimap when entering the dungeon if you don't close it.
+
+2017/03/08 v009
+	1. Add boss encounter marks for dungeon and raids.
+	2. Re-code the addon to make the codes more clear.
+	3. You can use Ctrl+mouse wheel to scale the BattlefieldMinimap more quickly.
+	4. You can left-click one point at the BattlefieldMinimap to show it in the center.
+
+2017/03/07 v008
+	1. The BattlefieldMinimap's origin size is not correct, so the unit's position and land marks won't be displayed in the correct coords, fix it's size based on the WorldMap.
+
+2017/03/07 v007
+	1. Fix the tip don't show when the WorldMap reset it.
+	2. The units would be shown above the other marks.
+
+2017/03/06 v005 - v006
+	1. Fix nil error, re-fix the teammate's size.
+	2. Fix an error when BattlefieldMinimap not loaded.
+
+2017/03/06 v004
+	1. Fix the teammate's size on the minimap.
+
+2017/03/06 v002-v003
+	1. Fix a display error for the BattlefieldMinimapTab.
+	2. Fix tip error for quest.
+
+2017/03/03 v001
+	1. Finish the first version.
