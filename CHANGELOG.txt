@@ -1,3 +1,6 @@
+2019/08/31 v078
+	1. Pin scale setting added.
+
 2018/08/30 v075
 	1. Fix the party and raid member's scale.
 

@@ -31,6 +31,7 @@ function OnLoad(self)
         -- Display Status
         MaskScale       = 1.0,
         CanvasScale     = 1.0,
+        PinScale        = 0.6,
 
         -- Minimap
         IncludeMinimap  = false,
@@ -101,11 +102,17 @@ function OnEnable(self)
     BattlefieldMapFrameBack:SetPoint("BOTTOMRIGHT", 0, 0)
     BattlefieldMapFrameBack:SetBackdrop{ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 2 }
     BattlefieldMapFrameBack:SetBackdropBorderColor(_SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a)
-
+    BattlefieldMapFrameBack:SetIgnoreParentScale(true)
     BattlefieldMapFrameBack:SetAlpha(min(1 - (_G.BattlefieldMapOptions.opacity or 0), _SVDB.BorderColor.a))
 
-    BattlefieldMapFrameCoords = BattlefieldMapFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    BattlefieldMapFrameCoords:SetPoint("BOTTOMRIGHT", BattlefieldMapFrame, "TOPRIGHT", 0, 2)
+    BattlefieldMapFrameCoordsFrame = CreateFrame("Frame", nil, BFMScrollContainer)
+    BattlefieldMapFrameCoordsFrame:SetFrameStrata("HIGH")
+    BattlefieldMapFrameCoordsFrame:SetSize(40, 32)
+    BattlefieldMapFrameCoordsFrame:SetPoint("TOPRIGHT")
+    BattlefieldMapFrameCoordsFrame:SetIgnoreParentScale(true)
+
+    BattlefieldMapFrameCoords = BattlefieldMapFrameCoordsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    BattlefieldMapFrameCoords:SetPoint("RIGHT")
 
     Minimap:HookScript("OnEnter", Minimap_OnEnter)
 
@@ -117,6 +124,7 @@ function OnEnable(self)
     BattlefieldZoneTextFrame:SetMovable(true)
     BattlefieldZoneTextFrame:EnableMouse(true)
     BattlefieldZoneTextFrame:EnableMouseWheel(true)
+    BattlefieldZoneTextFrame:SetIgnoreParentScale(true)
 
     BattlefieldZoneTextFrame:SetScript("OnMouseDown", BattlefieldZoneTextFrame.StartMoving)
     BattlefieldZoneTextFrame:SetScript("OnMouseUp", function(self)
@@ -149,6 +157,8 @@ function OnEnable(self)
 
     _Enabled            = true
 
+    BattlefieldMapFrame:SetGlobalPinScale(_SVDB.PinScale)
+
     AddRestDataProvider(BattlefieldMapFrame)
 
     _IncludeMinimap     = _SVDB.IncludeMinimap
@@ -166,6 +176,21 @@ function OnEnable(self)
     end
 
     _M:SecureHook(BattlefieldMapFrame, "UpdateUnitsVisibility")
+end
+
+__SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
+function resetlocaton()
+    BattlefieldMapTab:ClearAllPoints()
+    BattlefieldMapTab:SetPoint("TOPLEFT", 100, -100)
+
+    _SVDB.PinScale = 1
+    BattlefieldMapFrame:SetGlobalPinScale(1)
+
+    UpdatePlayerScale()
+
+    _SVDB.MaskScale     = 1
+    BattlefieldMapFrame:SetSize(ORIGIN_WIDTH * _SVDB.MaskScale, ORIGIN_HEIGHT * _SVDB.MaskScale)
+    BattlefieldMapFrame:OnFrameSizeChanged()
 end
 
 __SlashCmd__("ebfm", "incminimap", _Locale["on/off/always - take control of the minimap"])
@@ -239,12 +264,7 @@ function SetPlayerScale(opt)
     opt = tonumber(opt)
     if opt and opt > 0 then
         _SVDB.PlayerScale = opt
-        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("player", BATTLEFIELD_MAP_PLAYER_SIZE * _SVDB.PlayerScale)
-
-        if BattlefieldMapOptions.showPlayers then
-            BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PlayerScale)
-            BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("raid", BATTLEFIELD_MAP_RAID_MEMBER_SIZE * _SVDB.PlayerScale)
-        end
+        UpdatePlayerScale()
 
         if BattlefieldMapFrame:IsVisible() then
             BattlefieldMapFrame:Hide()
@@ -272,11 +292,22 @@ function SetWorldQuestScale(opt)
     end
 end
 
+__SlashCmd__("ebfm", "pin", _Locale["scale - set the scale of the map pins"])
+function SetPinScale(opt)
+    opt = tonumber(opt)
+    if opt and opt > 0 then
+        _SVDB.PinScale = opt
+        BattlefieldMapFrame:SetGlobalPinScale(opt)
+    else
+        return false
+    end
+end
 ----------------------------------------------
 --               System Event               --
 ----------------------------------------------
 __SystemEvent__()
 function PLAYER_STARTED_MOVING()
+    ZONE_CHANGED()
     return LockOnPlayer(BFMScrollContainer)
 end
 
@@ -310,10 +341,7 @@ function ZONE_CHANGED()
 end
 
 function UpdateUnitsVisibility()
-    if BattlefieldMapOptions.showPlayers then
-        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PlayerScale)
-        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("raid", BATTLEFIELD_MAP_RAID_MEMBER_SIZE * _SVDB.PlayerScale)
-    end
+    UpdatePlayerScale()
 end
 
 ----------------------------------------------
@@ -327,7 +355,6 @@ function GetPlayerMapPos()
     local rects                 = MapRects[mapid]
 
     if not rects then
-        rects                   = {}
         local _, topleft        = C_Map.GetWorldPosFromMapPos(mapid, CreateVector2D(0,0))
         local _, bottomright    = C_Map.GetWorldPosFromMapPos(mapid, CreateVector2D(1,1))
 
@@ -369,12 +396,6 @@ function AddRestDataProvider(self)
     worldQuestDataProvider.AddWorldQuest = AddWorldQuest
     self:AddDataProvider(worldQuestDataProvider)
 
-    self.groupMembersDataProvider:SetUnitPinSize("player", BATTLEFIELD_MAP_PLAYER_SIZE * _SVDB.PlayerScale)
-    if BattlefieldMapOptions.showPlayers then
-        self.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PlayerScale)
-        self.groupMembersDataProvider:SetUnitPinSize("raid", BATTLEFIELD_MAP_RAID_MEMBER_SIZE * _SVDB.PlayerScale)
-    end
-
     local pinFrameLevelsManager = self:GetPinFrameLevelsManager()
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT")
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_BLOB")
@@ -392,7 +413,17 @@ function AddRestDataProvider(self)
     pinFrameLevelsManager.definitions.PIN_FRAME_LEVEL_GROUP_MEMBER = nil
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GROUP_MEMBER")
 
+    UpdatePlayerScale()
     FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
+end
+
+function UpdatePlayerScale()
+    BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("player", BATTLEFIELD_MAP_PLAYER_SIZE * _SVDB.PlayerScale)
+
+    if BattlefieldMapOptions.showPlayers then
+        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PlayerScale)
+        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("raid", BATTLEFIELD_MAP_RAID_MEMBER_SIZE * _SVDB.PlayerScale)
+    end
 end
 
 __Async__() local _LockOnPlayed = false
@@ -609,6 +640,9 @@ end
 function UpdateAreaLabelScale()
     local name = areaLabelDataProvider.Label.Name
     local description = areaLabelDataProvider.Label.Description
+
+    name:SetIgnoreParentScale(true)
+    description:SetIgnoreParentScale(true)
 
     if not name.originfont then
         name.originfont = { name:GetFont() }
