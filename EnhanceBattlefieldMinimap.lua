@@ -31,7 +31,6 @@ function OnLoad(self)
         -- Display Status
         MaskScale       = 1.0,
         CanvasScale     = 1.0,
-        PinScale        = 0.6,
 
         -- Minimap
         IncludeMinimap  = false,
@@ -157,7 +156,7 @@ function OnEnable(self)
 
     _Enabled            = true
 
-    BattlefieldMapFrame:SetGlobalPinScale(_SVDB.PinScale)
+    BattlefieldMapFrame:SetGlobalPinScale(1)
 
     AddRestDataProvider(BattlefieldMapFrame)
 
@@ -182,9 +181,6 @@ __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
 function resetlocaton()
     BattlefieldMapTab:ClearAllPoints()
     BattlefieldMapTab:SetPoint("TOPLEFT", 100, -100)
-
-    _SVDB.PinScale = 1
-    BattlefieldMapFrame:SetGlobalPinScale(1)
 
     UpdatePlayerScale()
 
@@ -292,16 +288,6 @@ function SetWorldQuestScale(opt)
     end
 end
 
-__SlashCmd__("ebfm", "pin", _Locale["scale - set the scale of the map pins"])
-function SetPinScale(opt)
-    opt = tonumber(opt)
-    if opt and opt > 0 then
-        _SVDB.PinScale = opt
-        BattlefieldMapFrame:SetGlobalPinScale(opt)
-    else
-        return false
-    end
-end
 ----------------------------------------------
 --               System Event               --
 ----------------------------------------------
