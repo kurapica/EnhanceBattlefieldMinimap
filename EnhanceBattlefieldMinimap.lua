@@ -619,6 +619,13 @@ function UpdateZoneText()
     else
         BattlefieldZoneText:SetTextColor(1, 0.82, 0)
     end
+
+    for pin in BattlefieldMapFrame:EnumeratePinsByTemplate("MapHighlightPinTemplate") do
+        if not pin:IsIgnoringGlobalPinScale() then
+            pin:SetIgnoreGlobalPinScale(true)
+            pin:ApplyCurrentScale()
+        end
+    end
 end
 
 function UpdateAreaLabelScale()
