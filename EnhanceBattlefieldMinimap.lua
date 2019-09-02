@@ -156,8 +156,6 @@ function OnEnable(self)
 
     _Enabled            = true
 
-    BattlefieldMapFrame:SetGlobalPinScale(1)
-
     AddRestDataProvider(BattlefieldMapFrame)
 
     _IncludeMinimap     = _SVDB.IncludeMinimap
