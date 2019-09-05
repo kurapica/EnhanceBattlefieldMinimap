@@ -53,7 +53,7 @@ function OnLoad(self)
         PlayerScale     = 1.0,
 
         -- Area Label Scale
-        AreaLabelScale  = 1.0,
+        AreaLabelScale  = 0.5,
 
         -- World Quest Scale
         WorldQuestScale = 0.5,
@@ -173,6 +173,8 @@ function OnEnable(self)
     end
 
     _M:SecureHook(BattlefieldMapFrame, "UpdateUnitsVisibility")
+
+    if UnitIsDeadOrGhost("player") then PLAYER_DEAD(true) end
 end
 
 __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
@@ -289,6 +291,18 @@ end
 ----------------------------------------------
 --               System Event               --
 ----------------------------------------------
+__Async__() __SystemEvent__()
+function PLAYER_DEAD()
+    Delay(6)
+
+    BattlefieldMapFrame:RefreshAllDataProviders(true)
+
+    repeat
+        Wait("PLAYER_UNGHOST", "PLAYER_ALIVE", "ZONE_CHANGED_NEW_AREA", "ZONE_CHANGED_INDOORS", "ZONE_CHANGED")
+        BattlefieldMapFrame:RefreshAllDataProviders(true)
+    until not UnitIsDeadOrGhost("player")
+end
+
 __SystemEvent__()
 function PLAYER_STARTED_MOVING()
     ZONE_CHANGED()
