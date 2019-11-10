@@ -1,3 +1,6 @@
+2019/11/10 v084
+	1. Force data providers to refresh when you start moving.
+
 2019/09/02 v081
 	1. Make the hightlight pin ignore the global scale, so they'll be displayed well now.
 

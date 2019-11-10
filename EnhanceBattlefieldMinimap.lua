@@ -6,12 +6,13 @@
 --========================================================--
 
 --========================================================--
-Scorpio            "EnhanceBattlefieldMinimap"       "2.0.0"
+Scorpio            "EnhanceBattlefieldMinimap"       "2.0.1"
 --========================================================--
 
 local OriginOnMouseWheel
 local ORIGIN_WIDTH, ORIGIN_HEIGHT
 local ORIGIN_AddWorldQuest
+local _WorldQuestDataProvider
 
 local ENTER_TASK_ID = 0
 
@@ -324,6 +325,8 @@ function ZONE_CHANGED()
     UpdateZoneText()
     Next()
 
+    if _WorldQuestDataProvider then _WorldQuestDataProvider:RefreshAllData() end
+
     if MapUtil.GetDisplayableMapForPlayer() ~= BattlefieldMapFrame:GetMapID() then
         -- Return to the player's map
         local mapID = MapUtil.GetDisplayableMapForPlayer()
@@ -393,6 +396,7 @@ function AddRestDataProvider(self)
     ORIGIN_AddWorldQuest        = worldQuestDataProvider.AddWorldQuest
     worldQuestDataProvider.AddWorldQuest = AddWorldQuest
     self:AddDataProvider(worldQuestDataProvider)
+    _WorldQuestDataProvider     = worldQuestDataProvider
 
     local pinFrameLevelsManager = self:GetPinFrameLevelsManager()
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT")
