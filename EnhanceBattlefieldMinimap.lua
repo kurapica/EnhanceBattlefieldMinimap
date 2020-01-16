@@ -306,7 +306,7 @@ end
 
 __SystemEvent__()
 function PLAYER_STARTED_MOVING()
-    ZONE_CHANGED()
+    -- ZONE_CHANGED()
     return LockOnPlayer(BFMScrollContainer)
 end
 
@@ -373,7 +373,7 @@ function GetPlayerMapPos()
 end
 
 function AddRestDataProvider(self)
-    self:AddDataProvider(CreateFromMixins(WorldMap_InvasionDataProviderMixin))
+    self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin))
     self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin))
     self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin))
     self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin))
@@ -416,6 +416,9 @@ function AddRestDataProvider(self)
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GROUP_MEMBER")
 
     UpdatePlayerScale()
+
+    MapCanvasMixin.OnShow(BattlefieldMapFrame)
+
     FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
 end
 
