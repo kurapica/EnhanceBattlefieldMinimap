@@ -176,6 +176,11 @@ function OnEnable(self)
     _M:SecureHook(BattlefieldMapFrame, "UpdateUnitsVisibility")
 
     if UnitIsDeadOrGhost("player") then PLAYER_DEAD(true) end
+
+    Next()
+
+    pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
+    MapCanvasMixin.OnShow(BattlefieldMapFrame)
 end
 
 __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
@@ -416,8 +421,6 @@ function AddRestDataProvider(self)
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GROUP_MEMBER")
 
     UpdatePlayerScale()
-
-    MapCanvasMixin.OnShow(BattlefieldMapFrame)
 
     FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
 end
