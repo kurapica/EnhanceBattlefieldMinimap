@@ -1,3 +1,6 @@
+2020/05/21 v087
+	1. /ebfm mouse on/off added to enable the mouse action or not
+
 2019/11/10 v084
 	1. Force data providers to refresh when you start moving.
 

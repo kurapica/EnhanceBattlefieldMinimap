@@ -58,6 +58,9 @@ function OnLoad(self)
 
         -- World Quest Scale
         WorldQuestScale = 0.5,
+
+        -- Block the mouse action on the map
+        BlockMouse      = false,
     }
 end
 
@@ -181,6 +184,12 @@ function OnEnable(self)
 
     pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
     MapCanvasMixin.OnShow(BattlefieldMapFrame)
+
+    BFMScrollContainer:EnableMouse(not _SVDB.BlockMouse)
+    BFMScrollContainer:EnableMouseWheel(not _SVDB.BlockMouse)
+    BattlefieldMapFrame:EnableMouse(not _SVDB.BlockMouse)
+
+    ReplacePartyPin()
 end
 
 __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
@@ -292,6 +301,14 @@ function SetWorldQuestScale(opt)
         pin:SetScalingLimits(1, opt, opt)
         pin:SetScale(opt)
     end
+end
+
+__SlashCmd__("ebfm", "mouse", _Locale["on/off - toggle the usage of the mouse action"])
+function EnableMouseAction(opt)
+    _SVDB.BlockMouse            = opt and opt:lower() == "off" or false
+    BFMScrollContainer:EnableMouse(not _SVDB.BlockMouse)
+    BFMScrollContainer:EnableMouseWheel(not _SVDB.BlockMouse)
+    BattlefieldMapFrame:EnableMouse(not _SVDB.BlockMouse)
 end
 
 ----------------------------------------------
@@ -432,6 +449,19 @@ function UpdatePlayerScale()
         BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PlayerScale)
         BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("raid", BATTLEFIELD_MAP_RAID_MEMBER_SIZE * _SVDB.PlayerScale)
     end
+end
+
+function ReplacePartyPin()
+    local texture               = [[Interface\AddOns\EnhanceBattlefieldMinimap\resource\pin.blp]]
+    local pin                   = BattlefieldMapFrame.groupMembersDataProvider.pin
+    pin:SetPinTexture("raid", texture)
+    pin:SetPinTexture("party", texture)
+    hooksecurefunc(pin, "UpdateAppearanceData", function(self)
+        self:SetPinTexture("raid", texture)
+        self:SetPinTexture("party", texture)
+    end)
+    pin:SetAppearanceField("party", "useClassColor", true)
+    pin:SetAppearanceField("raid", "useClassColor", true)
 end
 
 __Async__() local _LockOnPlayed = false
