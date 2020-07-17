@@ -130,9 +130,13 @@ function Container_OnMouseUp(self, button)
         -- Click to ping
         local mapid             = TARGET_MAP:GetMapID()
         local x, y              = self:GetCursorPosition()
+        local x, y              = self:GetCursorPosition()
         x                       = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
         y                       = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
 
-        C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(UnitName("player"), mapid, x * 100, y * 100), IsInRaid() and "RAID" or IsInGroup() and "PARTY" or "GUILD")
+        local type              = IsInRaid() and "RAID" or IsInGroup() and "PARTY" or C_GuildInfo.CanSpeakInGuildChat() and "GUILD"
+        if type then
+            C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(UnitName("player"), mapid, x * 100, y * 100), type)
+        end
     end
 end
