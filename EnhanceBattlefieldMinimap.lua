@@ -30,8 +30,9 @@ function OnLoad(self)
 
     _SVDB:SetDefault {
         -- Display Status
-        MaskScale       = 1.0,
         CanvasScale     = 1.0,
+        MaskSize        = nil,
+        Resizable       = true,
 
         -- Minimap
         IncludeMinimap  = false,
@@ -72,6 +73,7 @@ function OnEnable(self)
 
     if not IsAddOnLoaded("Blizzard_BattlefieldMap") then
         while NextEvent("ADDON_LOADED") ~= "Blizzard_BattlefieldMap" do end
+        Next()
     end
 
     ORDER_RESOURCES_CURRENCY_ID = 1220
@@ -92,6 +94,11 @@ function OnEnable(self)
     BFMScrollContainer:HookScript("OnMouseDown", Container_OnMouseDown)
     BFMScrollContainer:HookScript("OnMouseUp", Container_OnMouseUp)
     BFMScrollContainer:HookScript("OnEnter", Container_OnEnter)
+
+    BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
+    BFMResizer          = Resizer("EBFMResizer", BFMScrollContainer)
+    BFMResizer:SetResizeTarget(BattlefieldMapFrame)
+    BFMResizer.OnStopResizing = BFMResizer_OnResized
 
     BFMScrollContainer.CalculateViewRect = CalculateViewRect
 
@@ -155,8 +162,10 @@ function OnEnable(self)
     UpdateZoneText()
 
     -- Apply Settings
-    BattlefieldMapFrame:SetSize(ORIGIN_WIDTH * _SVDB.MaskScale, ORIGIN_HEIGHT * _SVDB.MaskScale)
-    BattlefieldMapFrame:OnFrameSizeChanged()
+    if _SVDB.MaskSize then
+        BattlefieldMapFrame:SetSize(_SVDB.MaskSize.width, _SVDB.MaskSize.height)
+        BattlefieldMapFrame:OnFrameSizeChanged()
+    end
 
     _Enabled            = true
 
@@ -199,8 +208,8 @@ function resetlocaton()
 
     UpdatePlayerScale()
 
-    _SVDB.MaskScale     = 1
-    BattlefieldMapFrame:SetSize(ORIGIN_WIDTH * _SVDB.MaskScale, ORIGIN_HEIGHT * _SVDB.MaskScale)
+    _SVDB.MaskSize      = Size(ORIGIN_WIDTH, ORIGIN_HEIGHT)
+    BattlefieldMapFrame:SetSize(ORIGIN_WIDTH, ORIGIN_HEIGHT)
     BattlefieldMapFrame:OnFrameSizeChanged()
 end
 
@@ -310,6 +319,19 @@ function EnableMouseAction(opt)
     BFMScrollContainer:EnableMouseWheel(not _SVDB.BlockMouse)
     BattlefieldMapFrame:EnableMouse(not _SVDB.BlockMouse)
 end
+
+__SlashCmd__("ebfm", "lock", _Locale["Lock the map so it can't be resized"])
+function LockMap(self)
+    _SVDB.Resizable             = false
+    BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
+end
+
+__SlashCmd__("ebfm", "unlock", _Locale["Unlock the map so it can be resized"])
+function UnLockMap(self)
+    _SVDB.Resizable             = true
+    BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
+end
+
 
 ----------------------------------------------
 --               System Event               --
@@ -462,6 +484,10 @@ function ReplacePartyPin()
     end)
     pin:SetAppearanceField("party", "useClassColor", true)
     pin:SetAppearanceField("raid", "useClassColor", true)
+
+    -- Keep player arrow above party and raid, and keep party member dots above raid dots.
+    pin:SetAppearanceField("party", "sublevel", 1)
+    pin:SetAppearanceField("raid", "sublevel", 0)
 end
 
 __Async__() local _LockOnPlayed = false
@@ -555,14 +581,13 @@ function Container_OnMouseUp(self, button)
 end
 
 function Container_OnMouseWheel(self, delta)
-    if IsAltKeyDown() then
-        _SVDB.MaskScale     = max(0.3, _SVDB.MaskScale + delta * 0.05)
-        BattlefieldMapFrame:SetSize(ORIGIN_WIDTH * _SVDB.MaskScale, ORIGIN_HEIGHT * _SVDB.MaskScale)
-        return BattlefieldMapFrame:OnFrameSizeChanged()
-    else
-        OriginOnMouseWheel(self, delta)
-        _SVDB.CanvasScale   = BFMScrollContainer:GetCanvasScale()
-    end
+    OriginOnMouseWheel(self, delta)
+    _SVDB.CanvasScale   = BFMScrollContainer:GetCanvasScale()
+end
+
+function BFMResizer_OnResized(self)
+    BattlefieldMapFrame:OnFrameSizeChanged()
+    _SVDB.MaskSize      = Size(BattlefieldMapFrame:GetSize())
 end
 
 __Async__()

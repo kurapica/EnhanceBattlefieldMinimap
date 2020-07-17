@@ -1,3 +1,8 @@
+2020/07/17 v089
+	1. You can click to send ping to raid/group/guid members.
+	2. use `/ebfm ping [3-10]`  to change the display time of the ping icon.
+	3. You can drag the resizer in the bottom right corner to change the map now. The alt+mouse wheel is removed, since you can change the size more easily.
+
 2020/05/21 v087
 	1. /ebfm mouse on/off added to enable the mouse action or not
 
