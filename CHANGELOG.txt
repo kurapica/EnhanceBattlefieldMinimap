@@ -1,3 +1,6 @@
+2020/07/18 v091
+	1. Fix for battle ground.
+
 2020/07/17 v089
 	1. You can click to send ping to raid/group/guid members.
 	2. use `/ebfm ping [3-10]`  to change the display time of the ping icon.

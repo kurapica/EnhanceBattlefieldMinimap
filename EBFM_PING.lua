@@ -138,7 +138,7 @@ function Container_OnMouseUp(self, button)
         x                       = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
         y                       = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
 
-        local type              = IsInRaid() and "RAID" or IsInGroup() and "PARTY" or C_GuildInfo.CanSpeakInGuildChat() and "GUILD"
+        local type              = C_PvP.IsBattleground() and "BATTLEGROUND" or IsInRaid() and "RAID" or IsInGroup() and "PARTY" or C_GuildInfo.CanSpeakInGuildChat() and "GUILD"
         if type then
             C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(UnitName("player"), mapid, x * 100, y * 100), type)
         else
