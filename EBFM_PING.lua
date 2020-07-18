@@ -76,7 +76,7 @@ end
 --             EBFMPingPinMixin             --
 ----------------------------------------------
 function EBFMPingPinMixin:OnLoad()
-    --self:SetScalingLimits(1, 0.4125, 0.4125)
+    self:SetScalingLimits(1.0, 1.0, 2.00)
     self:UseFrameLevelType("PIN_FRAME_LEVEL_MAP_HIGHLIGHT")
     self.UpdateTooltip = self.OnMouseEnter
 end
@@ -91,8 +91,12 @@ function EBFMPingPinMixin:OnAcquired(user, map, x, y)
     self:SetPosition(x/100, y/100)
     self.DriverAnimation:Play()
     self.ScaleAnimation:Play()
+    self.RotateAnimation:Play()
 
-    Delay(_SVDB.PingDelay, function() self:GetMap():RemovePin(self) end)
+    Delay(_SVDB.PingDelay, function()
+        local map = self:GetMap()
+        return map and map:RemovePin(self)
+    end)
 end
 
 function EBFMPingPinMixin:OnReleased()
@@ -102,6 +106,7 @@ function EBFMPingPinMixin:OnReleased()
     self.y                      = nil
     self.DriverAnimation:Stop()
     self.ScaleAnimation:Stop()
+    self.RotateAnimation:Stop()
 end
 
 function EBFMPingPinMixin:OnMouseEnter()
@@ -130,13 +135,14 @@ function Container_OnMouseUp(self, button)
         -- Click to ping
         local mapid             = TARGET_MAP:GetMapID()
         local x, y              = self:GetCursorPosition()
-        local x, y              = self:GetCursorPosition()
         x                       = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
         y                       = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
 
         local type              = IsInRaid() and "RAID" or IsInGroup() and "PARTY" or C_GuildInfo.CanSpeakInGuildChat() and "GUILD"
         if type then
             C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(UnitName("player"), mapid, x * 100, y * 100), type)
+        else
+            C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(UnitName("player"), mapid, x * 100, y * 100), "WHISPER", UnitName("player"))
         end
     end
 end

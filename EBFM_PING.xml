@@ -7,7 +7,7 @@
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture parentKey="Expand" file="Interface/minimap/UI-Minimap-Ping-Expand" alpha="0">
-					<Size x="50" y="50"/>
+					<Size x="32" y="32"/>
 					<Anchors>
 						<Anchor point="CENTER"/>
 					</Anchors>
@@ -16,6 +16,14 @@
 			<Layer level="ARTWORK">
 				<Texture parentKey="Expand" file="Interface/minimap/UI-Minimap-Ping-Center">
 					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Rotate" file="Interface/minimap/UI-Minimap-Ping-Rotate">
+					<Size x="70" y="70"/>
 					<Anchors>
 						<Anchor point="CENTER"/>
 					</Anchors>
@@ -31,6 +39,9 @@
 			</AnimationGroup>
 			<AnimationGroup parentKey="ScaleAnimation" looping="REPEAT">
 				<Scale childKey="Expand" fromScaleX=".5" fromScaleY=".5" toScaleX="1.2" toScaleY="1.2" duration=".575" order="1"/>
+			</AnimationGroup>
+			<AnimationGroup parentKey="RotateAnimation" looping="REPEAT">
+				<Rotation childKey="Rotate" order="1" duration="15" degrees="-360"/>
 			</AnimationGroup>
 		</Animations>
 	</Frame>
