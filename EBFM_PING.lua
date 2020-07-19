@@ -16,10 +16,14 @@ _G.EBFMPingPinMixin             = EBFMPingPinMixin
 
 EBFM_PING_PREFIX                = "EBFM:PING"
 
+CURRENT_PING                    = {}
+SORT_USER_PING                  = List()
+
 function OnLoad(self)
     _SVDB:SetDefault {
         -- Display Status
         PingDelay               = 5.0,
+        PingPerUser             = 2,    -- The display ping per user
     }
 end
 
@@ -38,6 +42,11 @@ end
 __SlashCmd__("ebfm", "ping", _Locale["[3-10] - set the ping display time, default 5"])
 function SetPingDelay(opt)
     _SVDB.PingDelay             = Clamp(tonumber(opt) or 0, 3, 10)
+end
+
+__SlashCmd__("ebfm", "pingperuser", _Locale["[1-5] - set the ping count per user, default 2"])
+function SetPingPerUser(opt)
+    _SVDB.PingPerUser           = Clamp(tonumber(opt) or 0, 1, 5)
 end
 
 ----------------------------------------------
@@ -87,23 +96,47 @@ function EBFMPingPinMixin:OnAcquired(user, map, x, y)
     self.map                    = map
     self.x                      = x
     self.y                      = y
+    self.endtime                = GetTime() + _SVDB.PingDelay
 
     self:SetPosition(x/100, y/100)
     self.DriverAnimation:Play()
     self.ScaleAnimation:Play()
     self.RotateAnimation:Play()
 
-    Delay(_SVDB.PingDelay, function()
-        local map = self:GetMap()
-        return map and map:RemovePin(self)
-    end)
+    CURRENT_PING[self]          = true
+
+    -- Reduce the ping of the user
+    SORT_USER_PING:Clear()
+
+    for ping in pairs(CURRENT_PING) do
+        if ping.sender == user then
+            SORT_USER_PING:Insert(ping.endtime)
+        end
+    end
+
+    if #SORT_USER_PING > _SVDB.PingPerUser then
+        SORT_USER_PING:Sort()
+        local last              = SORT_USER_PING[#SORT_USER_PING - _SVDB.PingPerUser]
+        for ping in pairs(CURRENT_PING) do
+            if ping.sender == user and ping.endtime <= last then
+                local map   = ping:GetMap()
+                if map then map:RemovePin(ping) end
+            end
+        end
+    end
+
+    FireSystemEvent("EBFM_PING_ACQUIRED")
 end
 
 function EBFMPingPinMixin:OnReleased()
+    CURRENT_PING[self]          = nil
+
     self.sender                 = nil
     self.map                    = nil
     self.x                      = nil
     self.y                      = nil
+    self.endtime                = nil
+
     self.DriverAnimation:Stop()
     self.ScaleAnimation:Stop()
     self.RotateAnimation:Stop()
@@ -126,6 +159,31 @@ end
 ----------------------------------------------
 local mouseDownTime
 
+__Service__(true)
+function ProcessPing()
+    while true do
+        NextEvent("EBFM_PING_ACQUIRED")
+
+        local hasping           = true
+
+        while hasping do
+            hasping             = false
+            local now           = GetTime()
+
+            for ping in pairs(CURRENT_PING) do
+                hasping         = true
+
+                if ping.endtime and ping.endtime <= now then
+                    local map   = ping:GetMap()
+                    if map then map:RemovePin(ping) end
+                end
+            end
+
+            Delay(0.1)
+        end
+    end
+end
+
 function Container_OnMouseDown(self, button)
     mouseDownTime               = GetTime()
 end
@@ -140,9 +198,9 @@ function Container_OnMouseUp(self, button)
 
         local type              = IsInGroup(LE_PARTY_CATEGORY_INSTANCE) and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup() and "PARTY" or C_GuildInfo.CanSpeakInGuildChat() and "GUILD"
         if type then
-            C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(UnitName("player"), mapid, x * 100, y * 100), type)
+            C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(GetRealmName() .. "-" .. UnitName("player"), mapid, x * 100, y * 100), type)
         else
-            C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(UnitName("player"), mapid, x * 100, y * 100), "WHISPER", UnitName("player"))
+            C_ChatInfo.SendAddonMessage(EBFM_PING_PREFIX, ("%s:%d(%.2f, %.2f)"):format(GetRealmName() .. "-" .. UnitName("player"), mapid, x * 100, y * 100), "WHISPER", UnitName("player"))
         end
     end
 end
