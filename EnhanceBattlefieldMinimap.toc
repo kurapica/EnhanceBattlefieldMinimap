@@ -1,9 +1,9 @@
-## Interface: 80300
+## Interface: 90001
 ## Title: EnhanceBattlefieldMinimap
 ## Author: kurapica125@outlook.com
-## Version: v093
+## Version: v094
 ## Notes: Enhance the Battlefield Minimap(Zone map) with several features, use /ebfm for help.
-## Dependencies: Scorpio.Widget
+## Dependencies: Scorpio.Widget, Blizzard_ObjectiveTracker
 ## OptionalDeps: HandyNotes
 ## DefaultState: Enabled
 ## LoadOnDemand: 0

@@ -97,7 +97,7 @@ function OnEnable(self)
 
     BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
     BFMResizer          = Resizer("EBFMResizer", BFMScrollContainer)
-    BFMResizer:SetResizeTarget(BattlefieldMapFrame)
+    BFMResizer.ResizeTarget = BattlefieldMapFrame
     BFMResizer.OnStopResizing = BFMResizer_OnResized
 
     BFMScrollContainer.CalculateViewRect = CalculateViewRect
@@ -110,10 +110,13 @@ function OnEnable(self)
     BattlefieldMapFrameBack:SetFrameStrata("HIGH")
     BattlefieldMapFrameBack:SetPoint("TOPLEFT", 0, 0)
     BattlefieldMapFrameBack:SetPoint("BOTTOMRIGHT", 0, 0)
-    BattlefieldMapFrameBack:SetBackdrop{ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 2 }
-    BattlefieldMapFrameBack:SetBackdropBorderColor(_SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a)
     BattlefieldMapFrameBack:SetIgnoreParentScale(true)
     BattlefieldMapFrameBack:SetAlpha(min(1 - (_G.BattlefieldMapOptions.opacity or 0), _SVDB.BorderColor.a))
+
+    Style[BattlefieldMapFrameBack] = {
+        backdrop            = { edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 2 },
+        backdropBorderColor = Color(_SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a),
+    }
 
     BattlefieldMapFrameCoordsFrame = CreateFrame("Frame", nil, BFMScrollContainer)
     BattlefieldMapFrameCoordsFrame:SetFrameStrata("HIGH")
@@ -263,7 +266,8 @@ function SetBorderColor(opt)
     end
 
     _SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a = unpack(color)
-    BattlefieldMapFrameBack:SetBackdropBorderColor(_SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a)
+
+    Style[BattlefieldMapFrameBack].backdropBorderColor = Color(_SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a)
 end
 
 __SlashCmd__("ebfm", "zonetext", _Locale["on/off - whether show the zone text"])
