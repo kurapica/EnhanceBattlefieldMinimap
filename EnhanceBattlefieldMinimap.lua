@@ -18,6 +18,8 @@ local ENTER_TASK_ID = 0
 
 local _IncludeMinimap, _MinimapControlled
 
+local Enum              = _G.Enum
+
 export { min = math.min }
 
 WORLD_QUEST_PIN_LIST    = List()
@@ -787,12 +789,12 @@ end
 
 function RefreshVisuals(self)
     local questID = self.questID
-    local tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, displayTimeLeft = GetQuestTagInfo(questID)
-    local selected = questID == GetSuperTrackedQuestID()
+    local tagID, tagName, worldQuestType, rarity, isElite, tradeskillLineIndex, displayTimeLeft = C_QuestLog.GetQuestTagInfo(questID)
+    local selected = questID == C_SuperTrack.GetSuperTrackedQuestID()
     self.Glow:SetShown(selected)
-    self.SelectedGlow:SetShown(rarity ~= LE_WORLD_QUEST_QUALITY_COMMON and selected)
+    self.SelectedGlow:SetShown(rarity ~= Enum.WorldQuestQuality.COMMON and selected)
 
-    if rarity == LE_WORLD_QUEST_QUALITY_COMMON then
+    if rarity == Enum.WorldQuestQuality.COMMON then
         if selected then
             self.Background:SetTexCoord(0.500, 0.625, 0.375, 0.5)
             self.PushedBackground:SetTexCoord(0.375, 0.500, 0.375, 0.5)
@@ -811,26 +813,26 @@ function RefreshVisuals(self)
     --else
     self.RewardRing:Hide()
 
-    if self.worldQuestType == LE_QUEST_TAG_TYPE_PVP then
+    if self.worldQuestType == Enum.QuestTag.PVP then
         local _, width, height = GetAtlasInfo("worldquest-icon-pvp-ffa")
         self.Texture:SetAtlas("worldquest-icon-pvp-ffa")
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == LE_QUEST_TAG_TYPE_PET_BATTLE then
+    elseif self.worldQuestType == Enum.QuestTag.PET_BATTLE then
         self.Texture:SetAtlas("worldquest-icon-petbattle")
         self.Texture:SetSize(26, 22)
-    elseif self.worldQuestType == LE_QUEST_TAG_TYPE_PROFESSION and WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID] then
+    elseif self.worldQuestType == Enum.QuestTag.PROFESSION and WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID] then
         local _, width, height = GetAtlasInfo(WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID])
         self.Texture:SetAtlas(WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID])
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == LE_QUEST_TAG_TYPE_DUNGEON then
+    elseif self.worldQuestType == Enum.QuestTag.DUNGEON then
         local _, width, height = GetAtlasInfo("worldquest-icon-dungeon")
         self.Texture:SetAtlas("worldquest-icon-dungeon")
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == LE_QUEST_TAG_TYPE_RAID then
+    elseif self.worldQuestType == Enum.QuestTag.RAID then
         local _, width, height = GetAtlasInfo("worldquest-icon-raid")
         self.Texture:SetAtlas("worldquest-icon-raid")
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == LE_QUEST_TAG_TYPE_INVASION then
+    elseif self.worldQuestType == Enum.QuestTag.INVASION then
         local _, width, height = GetAtlasInfo("worldquest-icon-burninglegion")
         self.Texture:SetAtlas("worldquest-icon-burninglegion")
         self.Texture:SetSize(width * 2, height * 2)
@@ -872,3 +874,6 @@ function RefreshVisuals(self)
         end
     end
 end
+
+-- HotFix
+pcall(_G.ObjectiveTracker_Initialize, _G.ObjectiveTrackerFrame)
