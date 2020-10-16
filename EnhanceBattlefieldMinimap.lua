@@ -19,10 +19,15 @@ local ENTER_TASK_ID = 0
 local _IncludeMinimap, _MinimapControlled
 
 local Enum              = _G.Enum
+local _InBattleField    = false
 
 export { min = math.min }
 
 WORLD_QUEST_PIN_LIST    = List()
+
+
+PIN_TEXTURE             = [[Interface\AddOns\EnhanceBattlefieldMinimap\resource\pin.blp]]
+ORIGIN_PLAYER_TEXTURE   = [[Interface\WorldMap\WorldMapArrow]]
 
 ----------------------------------------------
 --            Addon Event Handler           --
@@ -55,6 +60,14 @@ function OnLoad(self)
 
         -- Player Arrow
         PlayerScale     = 1.0,
+        PartyScale      = 1.0,
+        RaidScale       = 1.0,
+        UseClassColor   = true,
+
+        -- Replace pin
+        ReplacePlayerPin= false,
+        ReplacePartyPin = false,
+        ReplaceRaidPin  = false,
 
         -- Area Label Scale
         AreaLabelScale  = 0.5,
@@ -64,6 +77,9 @@ function OnLoad(self)
 
         -- Block the mouse action on the map
         BlockMouse      = false,
+
+        -- Only show in battlegroud
+        OnlyBattleField = false,
     }
 end
 
@@ -83,6 +99,7 @@ function OnEnable(self)
     warResourcesCurrencyID = C_CurrencyInfo.GetWarResourcesCurrencyID()
 
     BattlefieldMapTab:SetUserPlaced(true)   -- Fix the bug blz won't save location
+    BattlefieldMapTab:SetScript("OnClick", BattlefieldMapTab_OnClick) -- Change the menu
 
     BattlefieldMapFrame:SetShouldNavigateOnClick(true)
     BattlefieldMapFrame.UpdatePinNudging = UpdatePinNudging
@@ -101,6 +118,7 @@ function OnEnable(self)
     BFMResizer          = Resizer("EBFMResizer", BFMScrollContainer)
     BFMResizer.ResizeTarget = BattlefieldMapFrame
     BFMResizer.OnStopResizing = BFMResizer_OnResized
+    Style[BFMResizer].size = Size(24, 24)
 
     BFMScrollContainer.CalculateViewRect = CalculateViewRect
 
@@ -218,7 +236,7 @@ function resetlocaton()
     BattlefieldMapFrame:OnFrameSizeChanged()
 end
 
-__SlashCmd__("ebfm", "incminimap", _Locale["on/off/always - take control of the minimap"])
+__SlashCmd__("ebfm", "incminimap", _Locale["on/off/always - embed the minimap"])
 function ToggleIncludeMinimap(opt)
     if opt == "always" then
         _SVDB.AlwaysInclude = true
@@ -301,6 +319,38 @@ function SetPlayerScale(opt)
     end
 end
 
+__SlashCmd__("ebfm", "party", _Locale["scale - set the scale of the party members"])
+function SetPartyScale(opt)
+    opt = tonumber(opt)
+    if opt and opt > 0 then
+        _SVDB.PartyScale = opt
+        UpdatePlayerScale()
+
+        if BattlefieldMapFrame:IsVisible() then
+            BattlefieldMapFrame:Hide()
+            BattlefieldMapFrame:Show()
+        end
+    else
+        return false
+    end
+end
+
+__SlashCmd__("ebfm", "raid", _Locale["scale - set the scale of the raid members"])
+function SetRaidScale(opt)
+    opt = tonumber(opt)
+    if opt and opt > 0 then
+        _SVDB.RaidScale = opt
+        UpdatePlayerScale()
+
+        if BattlefieldMapFrame:IsVisible() then
+            BattlefieldMapFrame:Hide()
+            BattlefieldMapFrame:Show()
+        end
+    else
+        return false
+    end
+end
+
 __SlashCmd__("ebfm", "arealabel", _Locale["[0.1-4] - set the scale of the area labels"])
 function SetAreaLabelScale(opt)
     _SVDB.AreaLabelScale = Clamp(tonumber(opt) or 0, 0.1, 4)
@@ -309,7 +359,7 @@ end
 
 __SlashCmd__("ebfm", "worldquest", _Locale["[0.1-2] - set the scale of the world quest icon, default 0.5"])
 function SetWorldQuestScale(opt)
-    opt                         = Clamp(tonumber(opt) or 0, 0.1, 2)
+    opt                         = Clamp(tonumber(opt) or 0, 0.1, 3)
     _SVDB.WorldQuestScale       = opt
 
     for _, pin in WORLD_QUEST_PIN_LIST:GetIterator() do
@@ -327,15 +377,32 @@ function EnableMouseAction(opt)
 end
 
 __SlashCmd__("ebfm", "lock", _Locale["Lock the map so it can't be resized"])
-function LockMap(self)
+function LockMap()
     _SVDB.Resizable             = false
     BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
 end
 
 __SlashCmd__("ebfm", "unlock", _Locale["Unlock the map so it can be resized"])
-function UnLockMap(self)
+function UnLockMap()
     _SVDB.Resizable             = true
     BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
+end
+
+__SlashCmd__("ebfm", "onlybg", _Locale["on/off - whether only show in battlegroud"])
+function ToggleOnlyBattlefield(opt)
+    if opt == "on" then
+        _SVDB.OnlyBattleField = true
+        if _InBattleField then
+            BFMScrollContainer:Show()
+        else
+            BFMScrollContainer:Hide()
+        end
+    elseif opt == "off" then
+        _SVDB.OnlyBattleField = false
+        BFMScrollContainer:Show()
+    else
+        return false
+    end
 end
 
 
@@ -388,6 +455,24 @@ function ZONE_CHANGED()
                 BFMScrollContainer:SetZoomTarget(_SVDB.CanvasScale)
             end
         end
+    end
+end
+
+__SystemEvent__()
+function PLAYER_ENTERING_WORLD()
+    _InBattleField              = false
+    if BFMScrollContainer and _SVDB.OnlyBattleField then
+        -- Hide when enter the world
+        BFMScrollContainer:Hide()
+    end
+end
+
+__SystemEvent__()
+function PLAYER_ENTERING_BATTLEGROUND()
+    _InBattleField              = true
+    if BFMScrollContainer and _SVDB.OnlyBattleField then
+        -- Show when enter the battleround
+        BFMScrollContainer:Show()
     end
 end
 
@@ -474,22 +559,54 @@ function UpdatePlayerScale()
     BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("player", BATTLEFIELD_MAP_PLAYER_SIZE * _SVDB.PlayerScale)
 
     if BattlefieldMapOptions.showPlayers then
-        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PlayerScale)
-        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("raid", BATTLEFIELD_MAP_RAID_MEMBER_SIZE * _SVDB.PlayerScale)
+        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PartyScale)
+        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("raid", BATTLEFIELD_MAP_RAID_MEMBER_SIZE * _SVDB.RaidScale)
     end
 end
 
+function UpdatePlayerPinTexture(self)
+    self                        = self or BattlefieldMapFrame.groupMembersDataProvider.pin
+
+    if _SVDB.ReplacePlayerPin then
+        self:SetPinTexture("player", PIN_TEXTURE)
+        self:SetAppearanceField("player", "useClassColor", _SVDB.UseClassColor)
+    else
+        self:SetPinTexture("player", ORIGIN_PLAYER_TEXTURE)
+        self:SetAppearanceField("player", "useClassColor", false)
+    end
+end
+
+function UpdatePinTexture(self)
+    self                        = self or BattlefieldMapFrame.groupMembersDataProvider.pin
+
+    if _SVDB.ReplacePartyPin then
+        self:SetPinTexture("party", PIN_TEXTURE)
+    else
+        self:SetPinTexture("party", IsInRaid() and "WhiteDotCircle-RaidBlips" or "WhiteCircle-RaidBlips")
+    end
+
+    if _SVDB.ReplaceRaidPin then
+        self:SetPinTexture("raid", PIN_TEXTURE)
+    else
+        self:SetPinTexture("raid", "WhiteCircle-RaidBlips")
+    end
+end
+
+function UpdateClassColor(self)
+    self                        = self or BattlefieldMapFrame.groupMembersDataProvider.pin
+    if _SVDB.ReplacePlayerPin then
+        self:SetAppearanceField("player", "useClassColor", _SVDB.UseClassColor)
+    end
+    self:SetAppearanceField("party", "useClassColor", _SVDB.UseClassColor)
+    self:SetAppearanceField("raid", "useClassColor", _SVDB.UseClassColor)
+end
+
 function ReplacePartyPin()
-    local texture               = [[Interface\AddOns\EnhanceBattlefieldMinimap\resource\pin.blp]]
     local pin                   = BattlefieldMapFrame.groupMembersDataProvider.pin
-    pin:SetPinTexture("raid", texture)
-    pin:SetPinTexture("party", texture)
-    hooksecurefunc(pin, "UpdateAppearanceData", function(self)
-        self:SetPinTexture("raid", texture)
-        self:SetPinTexture("party", texture)
-    end)
-    pin:SetAppearanceField("party", "useClassColor", true)
-    pin:SetAppearanceField("raid", "useClassColor", true)
+    hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
+    UpdatePlayerPinTexture()
+    UpdatePinTexture()
+    UpdateClassColor()
 
     -- Keep player arrow above party and raid, and keep party member dots above raid dots.
     pin:SetAppearanceField("party", "sublevel", 1)
@@ -872,6 +989,147 @@ function RefreshVisuals(self)
             self.Texture:SetAtlas("worldquest-questmarker-questbang")
             self.Texture:SetSize(12, 30)
         end
+    end
+end
+
+-- Dropdown Menu
+function BattlefieldMapTab_OnClick(self, button)
+    if button == "RightButton" then
+        ShowDropDownMenu{
+            -- The original
+            {
+                text            = SHOW_BATTLEFIELDMINIMAP_PLAYERS,
+                check           = {
+                    get         = function() return BattlefieldMapOptions.showPlayers end,
+                    set         = function(value) BattlefieldMapOptions.showPlayers = value; BattlefieldMapFrame:UpdateUnitsVisibility() end,
+                }
+            },
+            {
+                text            = LOCK_BATTLEFIELDMINIMAP,
+                check           = {
+                    get         = function() return BattlefieldMapOptions.locked end,
+                    set         = function(value) BattlefieldMapOptions.locked = value end,
+                }
+            },
+            {
+                text            = BATTLEFIELDMINIMAP_OPACITY_LABEL,
+                click           = function() BattlefieldMapTab:ShowOpacity() end,
+            },
+            -- The EBFM Part
+            {
+                text            = _Locale["Enable Mouse"],
+                check           = {
+                    get         = function() return not _SVDB.BlockMouse end,
+                    set         = function(value) EnableMouseAction(value and "on" or "off") end,
+                }
+            },
+            {
+                text            = _Locale["Resizable"],
+                check           = {
+                    get         = function() return _SVDB.Resizable end,
+                    set         = function(value) if value then UnLockMap() else LockMap() end end,
+                }
+            },
+            {
+                text            = _Locale["Show Zone Text"],
+                check           = {
+                    get         = function() return _SVDB.ShowZoneText end,
+                    set         = function(value) ToggleZoneText(value and "on" or "off") end,
+                }
+            },
+            {
+                text            = _Locale["Only in Battlefield"],
+                check           = {
+                    get         = function() return _SVDB.OnlyBattleField end,
+                    set         = function(value) ToggleOnlyBattlefield(value and "on" or "off") end,
+                },
+            },
+            {
+                text            = _Locale["Pin Texture"],
+                submenu         = {
+
+                    {
+                        text        = _Locale["Use Class Color"],
+                        check       = {
+                            get     = function() return _SVDB.UseClassColor end,
+                            set     = function(value) _SVDB.UseClassColor = value; UpdateClassColor() end,
+                        }
+                    },
+                    {
+                        text        = _Locale["Replace Player Arrow"],
+                        check       = {
+                            get     = function() return _SVDB.ReplacePlayerPin end,
+                            set     = function(value) _SVDB.ReplacePlayerPin = value; UpdatePlayerPinTexture() end,
+                        }
+                    },
+                    --[[{
+                        text        = _Locale["Replace Party Member"],
+                        check       = {
+                            get     = function() return _SVDB.ReplacePartyPin end,
+                            set     = function(value) _SVDB.ReplacePartyPin = value; UpdatePinTexture() end,
+                        }
+                    },
+                    {
+                        text        = _Locale["Replace Raid Member"],
+                        check       = {
+                            get     = function() return _SVDB.ReplaceRaidPin end,
+                            set     = function(value) _SVDB.ReplaceRaidPin = value; UpdatePinTexture() end,
+                        }
+                    },--]]
+                }
+            },
+            {
+                text            = _Locale["Embed Minimap"],
+                submenu         = {
+                    check       = {
+                        get     = function() return _SVDB.AlwaysInclude and 2 or _SVDB.IncludeMinimap and 1 or 0 end,
+                        set     = function(value) ToggleIncludeMinimap(value == 2 and "always" or value == 1 and "on" or "off") end,
+                    },
+
+                    {
+                        text    = _Locale["Off"],
+                        checkvalue = 0,
+                    },
+                    {
+                        text    = _Locale["On"],
+                        checkvalue = 1,
+                    },
+                    {
+                        text    = _Locale["Always"],
+                        checkvalue = 2,
+                    },
+                }
+            },
+            {
+                text            = _Locale["Player Scale"] .. " - " .. _SVDB.PlayerScale,
+                click           = function() SetPlayerScale(PickRange(_Locale["Choose Player Scale"], 0.1, 5, 0.1, _SVDB.PlayerScale)) end,
+            },
+            {
+                text            = _Locale["Party Member Scale"] .. " - " .. _SVDB.PartyScale,
+                click           = function() SetPartyScale(PickRange(_Locale["Choose Party Member Scale"], 0.1, 5, 0.1, _SVDB.PartyScale)) end,
+            },
+            {
+                text            = _Locale["Raid Member Scale"] .. " - " .. _SVDB.RaidScale,
+                click           = function() SetRaidScale(PickRange(_Locale["Choose Raid Member Scale"], 0.1, 5, 0.1, _SVDB.RaidScale)) end,
+            },
+            {
+                text            = _Locale["Area Label Scale"] .. " - " .. _SVDB.AreaLabelScale,
+                click           = function() SetAreaLabelScale(PickRange(_Locale["Choose Area Label Scale"], 0.1, 3, 0.1, _SVDB.AreaLabelScale)) end,
+            },
+            {
+                text            = _Locale["World Quest Scale"] .. " - " .. _SVDB.WorldQuestScale,
+                click           = function() SetWorldQuestScale(PickRange(_Locale["Choose World Quest Scale"], 0.1, 3, 0.1, _SVDB.WorldQuestScale)) end,
+            },
+            {
+                text            = _Locale["Border Color"],
+                color           = {
+                    get         = _SVDB.BorderColor,
+                    set         = function(color) SetBorderColor(List{ color.r, color.g, color.b, color.a }:Join(",")) end,
+                }
+            },
+        }
+    else
+        BattlefieldMapTab:OnClick(button)
     end
 end
 
