@@ -33,6 +33,8 @@ L["Choose World Quest Scale"]                                     = "选择选�
 L["Border Color"]                                                 = "边框颜色"
 L["Only in Battlefield"]                                          = "仅战场显示"
 L["on/off - whether only show in battlegroud"]                    = "on/off - 是否仅战场显示"
+L["Enable Mouse Coordinate"]                                      = "显示鼠标对应坐标"
+L["on/off - whether show the coordinate"]                         = "on/off - 是否显示鼠标对应坐标"
 
 L["Pin Texture"]                                                  = "人员材质"
 L["Use Class Color"]                                              = "使用职业色"

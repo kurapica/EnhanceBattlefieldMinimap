@@ -80,6 +80,9 @@ function OnLoad(self)
 
         -- Only show in battlegroud
         OnlyBattleField = false,
+
+        -- Enable the mouse coordinate
+        EnableCoordinate= true,
     }
 end
 
@@ -141,7 +144,7 @@ function OnEnable(self)
     BattlefieldMapFrameCoordsFrame = CreateFrame("Frame", nil, BFMScrollContainer)
     BattlefieldMapFrameCoordsFrame:SetFrameStrata("HIGH")
     BattlefieldMapFrameCoordsFrame:SetSize(40, 32)
-    BattlefieldMapFrameCoordsFrame:SetPoint("TOPRIGHT")
+    BattlefieldMapFrameCoordsFrame:SetPoint("TOPRIGHT", -8, 0)
     BattlefieldMapFrameCoordsFrame:SetIgnoreParentScale(true)
 
     BattlefieldMapFrameCoords = BattlefieldMapFrameCoordsFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -405,6 +408,16 @@ function ToggleOnlyBattlefield(opt)
     end
 end
 
+__SlashCmd__("ebfm", "coordinate", _Locale["on/off - whether show the coordinate"])
+function ToggleMouseCoordinate(opt)
+    if opt == "on" then
+        _SVDB.EnableCoordinate = true
+    elseif opt == "off" then
+        _SVDB.EnableCoordinate = false
+    else
+        return false
+    end
+end
 
 ----------------------------------------------
 --               System Event               --
@@ -661,14 +674,16 @@ function Container_OnEnter(self)
     BattlefieldMapFrame:SetGlobalAlpha(1)
     BattlefieldMapFrameBack:SetAlpha(min(1, _SVDB.BorderColor.a))
 
-    while task == ENTER_TASK_ID and self:IsMouseOver() do
-        local x, y  = self:GetCursorPosition()
-        x           = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
-        y           = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
+    if _SVDB.EnableCoordinate then
+        while task == ENTER_TASK_ID and self:IsMouseOver() do
+            local x, y  = self:GetCursorPosition()
+            x           = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
+            y           = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
 
-        BattlefieldMapFrameCoords:SetText(("(%.2f, %.2f)"):format(x * 100, y * 100))
+            BattlefieldMapFrameCoords:SetText(("(%.2f, %.2f)"):format(x * 100, y * 100))
 
-        Next()
+            Next()
+        end
     end
 
     BattlefieldMapFrameCoords:SetText("")
@@ -1043,6 +1058,13 @@ function BattlefieldMapTab_OnClick(self, button)
                     get         = function() return _SVDB.OnlyBattleField end,
                     set         = function(value) ToggleOnlyBattlefield(value and "on" or "off") end,
                 },
+            },
+            {
+                text            = _Locale["Enable Mouse Coordinate"],
+                check           = {
+                    get         = function() return _SVDB.EnableCoordinate end,
+                    set         = function(value) ToggleMouseCoordinate(value and "on" or "off") end,
+                }
             },
             {
                 text            = _Locale["Pin Texture"],
