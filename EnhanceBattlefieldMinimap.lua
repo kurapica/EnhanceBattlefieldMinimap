@@ -224,6 +224,10 @@ function OnEnable(self)
     BFMScrollContainer:EnableMouseWheel(not _SVDB.BlockMouse)
     BattlefieldMapFrame:EnableMouse(not _SVDB.BlockMouse)
 
+    local test          = Texture("test", BFMScrollContainer, "ARTWORK")
+    test:SetTexture(PIN_TEXTURE)
+    test:Hide()
+
     ReplacePartyPin()
 end
 
@@ -1084,7 +1088,7 @@ function BattlefieldMapTab_OnClick(self, button)
                             set     = function(value) _SVDB.ReplacePlayerPin = value; UpdatePlayerPinTexture() end,
                         }
                     },
-                    --[[{
+                    {
                         text        = _Locale["Replace Party Member"],
                         check       = {
                             get     = function() return _SVDB.ReplacePartyPin end,
@@ -1097,7 +1101,7 @@ function BattlefieldMapTab_OnClick(self, button)
                             get     = function() return _SVDB.ReplaceRaidPin end,
                             set     = function(value) _SVDB.ReplaceRaidPin = value; UpdatePinTexture() end,
                         }
-                    },--]]
+                    },
                 }
             },
             {
