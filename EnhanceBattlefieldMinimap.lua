@@ -793,7 +793,7 @@ end
 function TryInitMinimap()
     if _IncludeMinimap and (BFMScrollContainer:IsVisible() or _SVDB.AlwaysInclude) and not _MinimapControlled then
         _MinimapControlled = true
-        Minimap:EnableMouse(not _SVDB.BlockEmbedMap )
+        Minimap:EnableMouse(not _SVDB.BlockEmbedMap)
         SaveMinimapLocation()
         Minimap_OnEnter(Minimap)
         if not UnitPosition("player") then
