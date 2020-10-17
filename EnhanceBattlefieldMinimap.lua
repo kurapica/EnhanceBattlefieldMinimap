@@ -45,6 +45,9 @@ function OnLoad(self)
         IncludeMinimap  = false,
         AlwaysInclude   = false,
 
+        -- Block the mouse interaction with the embed minimap
+        BlockEmbedMap   = true,
+
         -- Border Color
         BorderColor     = {
             r           = 0,
@@ -790,6 +793,7 @@ end
 function TryInitMinimap()
     if _IncludeMinimap and (BFMScrollContainer:IsVisible() or _SVDB.AlwaysInclude) and not _MinimapControlled then
         _MinimapControlled = true
+        Minimap:EnableMouse(not _SVDB.BlockEmbedMap )
         SaveMinimapLocation()
         Minimap_OnEnter(Minimap)
         if not UnitPosition("player") then
@@ -802,6 +806,7 @@ function SendBackMinimap()
     if _SVDB.AlwaysInclude then return end
 
     if _MinimapControlled then
+        Minimap:EnableMouse(true)
         _MinimapControlled = false
         if _HideCluster then
             MinimapCluster:Show()
@@ -1105,25 +1110,40 @@ function BattlefieldMapTab_OnClick(self, button)
                 }
             },
             {
-                text            = _Locale["Embed Minimap"],
+                text            = _Locale["Minimap"],
                 submenu         = {
-                    check       = {
-                        get     = function() return _SVDB.AlwaysInclude and 2 or _SVDB.IncludeMinimap and 1 or 0 end,
-                        set     = function(value) ToggleIncludeMinimap(value == 2 and "always" or value == 1 and "on" or "off") end,
-                    },
+                    {
+                        text    = _Locale["Embed Minimap"],
+                        submenu = {
+                            check       = {
+                                get     = function() return _SVDB.AlwaysInclude and 2 or _SVDB.IncludeMinimap and 1 or 0 end,
+                                set     = function(value) ToggleIncludeMinimap(value == 2 and "always" or value == 1 and "on" or "off") end,
+                            },
 
-                    {
-                        text    = _Locale["Off"],
-                        checkvalue = 0,
+                            {
+                                text    = _Locale["Off"],
+                                checkvalue = 0,
+                            },
+                            {
+                                text    = _Locale["On"],
+                                checkvalue = 1,
+                            },
+                            {
+                                text    = _Locale["Always"],
+                                checkvalue = 2,
+                            },
+                        }
                     },
                     {
-                        text    = _Locale["On"],
-                        checkvalue = 1,
-                    },
-                    {
-                        text    = _Locale["Always"],
-                        checkvalue = 2,
-                    },
+                        text    = _Locale["Block Minimap Interaction"],
+                        check   = {
+                            get = function() return _SVDB.BlockEmbedMap end,
+                            set = function(value)
+                                _SVDB.BlockEmbedMap   = value
+                                Minimap:EnableMouse(not (_MinimapControlled and value))
+                            end,
+                        }
+                    }
                 }
             },
             {
