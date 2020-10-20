@@ -14,7 +14,7 @@ L["on/off - toggle the usage of the mouse action"]                = "on/off - �
 L["Lock the map so it can't be resized"]                          = "锁定地图"
 L["Unlock the map so it can be resized"]                          = "解锁地图"
 L["Enable Mouse"]                                                 = "启用鼠标交互"
-L["Resizable"]                                                    = "解锁地图"
+L["UnLock The Map"]                                               = "解锁地图"
 L["Show Zone Text"]                                               = "显示区域名称"
 L["Embed Minimap"]                                                = "内嵌小地图"
 L["Off"]                                                          = "关闭"
@@ -37,6 +37,10 @@ L["Enable Mouse Coordinate"]                                      = "显示鼠�
 L["on/off - whether show the coordinate"]                         = "on/off - 是否显示鼠标对应坐标"
 L["Minimap"]                                                      = "小地图"
 L["Block Minimap Interaction"]                                    = "内嵌小地图时禁止小地图交互"
+L["on/off - Block the tab frame"]                                 = "on/off - 禁用Tab标签页"
+L["Disable The Tab Frame"]                                        = "禁用地图Tab标签页"
+L["The Frame Strata"]                                             = "图层"
+
 
 L["Pin Texture"]                                                  = "人员材质"
 L["Use Class Color"]                                              = "使用职业色"

@@ -1,3 +1,9 @@
+2020/10/20 v100
+	1. The drop menu is added with many features.
+	2. The frame strata can be changed, so you can put the map in the background or the very font.
+	3. The tab frame can be blocked so you won't see it, but need use `/ebfm blocktab off` to show it, or the menu can't be used.
+
+
 2020/07/18 v091
 	1. Fix for battle ground.
 

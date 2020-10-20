@@ -40,6 +40,7 @@ function OnLoad(self)
         CanvasScale     = 1.0,
         MaskSize        = nil,
         Resizable       = true,
+        BlockTab        = false,
 
         -- Minimap
         IncludeMinimap  = false,
@@ -55,6 +56,9 @@ function OnLoad(self)
             b           = 0,
             a           = 1,
         },
+
+        -- The Frame Strata
+        FrameStrata     = "LOW",
 
         -- Zone Text
         ShowZoneText    = true,
@@ -231,7 +235,10 @@ function OnEnable(self)
     test:SetTexture(PIN_TEXTURE)
     test:Hide()
 
+    BattlefieldMapFrame:SetFrameStrata(_SVDB.FrameStrata)
+
     ReplacePartyPin()
+    BlockTabFrame()
 end
 
 __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
@@ -396,6 +403,13 @@ __SlashCmd__("ebfm", "unlock", _Locale["Unlock the map so it can be resized"])
 function UnLockMap()
     _SVDB.Resizable             = true
     BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
+end
+
+__SlashCmd__("ebfm", "blocktab", _Locale["on/off - Block the tab frame"])
+function BlockMap(opt)
+    _SVDB.BlockTab              = opt and opt:lower() == "on" or false
+
+    BlockTabFrame()
 end
 
 __SlashCmd__("ebfm", "onlybg", _Locale["on/off - whether only show in battlegroud"])
@@ -631,6 +645,18 @@ function ReplacePartyPin()
     -- Keep player arrow above party and raid, and keep party member dots above raid dots.
     pin:SetAppearanceField("party", "sublevel", 1)
     pin:SetAppearanceField("raid", "sublevel", 0)
+end
+
+function BlockTabFrame()
+    if _SVDB.BlockTab then
+        BattlefieldMapTab:EnableMouse(false)
+        BattlefieldMapTab:Hide()
+        BattlefieldMapTab.Show = BattlefieldMapTab.Hide
+    else
+        BattlefieldMapTab:EnableMouse(true)
+        BattlefieldMapTab.Show = nil
+        BattlefieldMapTab:Show()
+    end
 end
 
 __Async__() local _LockOnPlayed = false
@@ -1048,10 +1074,17 @@ function BattlefieldMapTab_OnClick(self, button)
                 }
             },
             {
-                text            = _Locale["Resizable"],
+                text            = _Locale["UnLock The Map"],
                 check           = {
                     get         = function() return _SVDB.Resizable end,
                     set         = function(value) if value then UnLockMap() else LockMap() end end,
+                }
+            },
+            {
+                text            = _Locale["Disable The Tab Frame"],
+                check           = {
+                    get         = function() return _SVDB.BlockTab end,
+                    set         = function(value) BlockMap(value and "on" or "off") end
                 }
             },
             {
@@ -1073,6 +1106,45 @@ function BattlefieldMapTab_OnClick(self, button)
                 check           = {
                     get         = function() return _SVDB.EnableCoordinate end,
                     set         = function(value) ToggleMouseCoordinate(value and "on" or "off") end,
+                }
+            },
+            {
+                text            = _Locale["The Frame Strata"],
+
+                submenu         = {
+                    check       = {
+                        get     = function() return _SVDB.FrameStrata end,
+                        set     = function(value) _SVDB.FrameStrata = value; BattlefieldMapFrame:SetFrameStrata(value) end,
+                    },
+
+                    {
+                        text    = "BACKGROUND",
+                        checkvalue = "BACKGROUND",
+                    },
+                    {
+                        text    = "LOW",
+                        checkvalue = "LOW",
+                    },
+                    {
+                        text    = "MEDIUM",
+                        checkvalue = "MEDIUM",
+                    },
+                    {
+                        text    = "HIGH",
+                        checkvalue = "HIGH",
+                    },
+                    {
+                        text    = "DIALOG",
+                        checkvalue = "DIALOG",
+                    },
+                    {
+                        text    = "FULLSCREEN",
+                        checkvalue = "FULLSCREEN",
+                    },
+                    {
+                        text    = "FULLSCREEN_DIALOG",
+                        checkvalue = "FULLSCREEN_DIALOG",
+                    },
                 }
             },
             {
