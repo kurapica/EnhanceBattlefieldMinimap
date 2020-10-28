@@ -11,6 +11,8 @@ Scorpio     "EnhanceBattlefieldMinimap.HandyNotes"   "2.0.0"
 
 if not IsAddOnLoaded("HandyNotes") then return end
 
+export { tinsert = table.insert }
+
 local INITED            = false
 local TARGET_MAP
 
@@ -19,7 +21,10 @@ HandyNotes              = HandyNotes
 HandyNotesDataProvider  = CreateFromMixins({}, HandyNotes.WorldMapDataProvider)
 
 function OnLoad(self)
-    _SVDB:SetDefault { ShowHandyNotes = true }
+    _SVDB:SetDefault {
+        ShowHandyNotes  = true,
+        HandyNotesScale = 1.0,
+    }
 end
 
 __SlashCmd__("ebfm", "handynotes", _Locale["on/off - show HandyNotes's marks"])
@@ -56,6 +61,45 @@ function EBFM_DATAPROVIDER_INIT(map)
     end
 
     INITED              = true
+end
+
+__SystemEvent__()
+function EBFM_SHOW_MENU(option)
+    tinsert(option,
+        {
+            text            = _Locale["HandyNotes"],
+            submenu         = {
+                {
+                    text    = _Locale["Enable"],
+                    check   = {
+                        get = function() return _SVDB.ShowHandyNotes end,
+                        set = function(value) ToggleHandyNotes(value and "on" or "off") end,
+                    }
+                },
+                {
+                    text    = _Locale["Pin Scale"] .. " - " .. _SVDB.HandyNotesScale,
+                    click   = function()
+                        local scale = PickRange(_Locale["Choose Pin Scale"], 0.1, 5, 0.1, _SVDB.HandyNotesScale)
+                        if not scale then return end
+
+                        _SVDB.HandyNotesScale = scale
+
+                        if INITED then
+                            HandyNotesDataProvider:RefreshAllData()
+                        end
+                    end,
+                },
+            }
+        }
+    )
+end
+
+__SystemEvent__()
+function EBFM_PIN_ACQUIRED(template, pin)
+    if template == "HandyNotesWorldMapPinTemplate" then
+        local w, h = pin:GetSize()
+        pin:SetSize(w * _SVDB.HandyNotesScale, h * _SVDB.HandyNotesScale)
+    end
 end
 
 __SecureHook__(HandyNotes)

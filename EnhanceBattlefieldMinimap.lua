@@ -16,7 +16,7 @@ local _WorldQuestDataProvider
 
 local ENTER_TASK_ID = 0
 
-local _IncludeMinimap, _MinimapControlled
+local _IncludeMinimap, _MinimapControlled, _MinimapOriginalSize
 
 local Enum              = _G.Enum
 local _InBattleField    = false
@@ -45,6 +45,7 @@ function OnLoad(self)
         -- Minimap
         IncludeMinimap  = false,
         AlwaysInclude   = false,
+        MinimapSize     = 180,
 
         -- Block the mouse interaction with the embed minimap
         BlockEmbedMap   = true,
@@ -586,6 +587,17 @@ function AddRestDataProvider(self)
 
     UpdatePlayerScale()
 
+    local oldAcquirePin         = self.AcquirePin
+    self.AcquirePin             = function(self, pinTemplate, ...)
+        local pin               = oldAcquirePin(self, pinTemplate, ...)
+
+        if pin then
+            FireSystemEvent("EBFM_PIN_ACQUIRED", pinTemplate, pin)
+        end
+
+        return pin
+    end
+
     FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
 end
 
@@ -819,8 +831,12 @@ end
 function TryInitMinimap()
     if _IncludeMinimap and (BFMScrollContainer:IsVisible() or _SVDB.AlwaysInclude) and not _MinimapControlled then
         _MinimapControlled = true
+        _MinimapOriginalSize = Size(Minimap:GetSize())
         Minimap:EnableMouse(not _SVDB.BlockEmbedMap)
         SaveMinimapLocation()
+        Minimap:SetSize(_SVDB.MinimapSize, _SVDB.MinimapSize)
+        Minimap:SetZoom(Minimap:GetZoom() + 1)
+        Minimap:SetZoom(Minimap:GetZoom() - 1)
         Minimap_OnEnter(Minimap)
         if not UnitPosition("player") then
             Minimap:Hide()
@@ -844,6 +860,7 @@ function SendBackMinimap()
         Minimap:SetAlpha(1)
         Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
         Minimap:ClearAllPoints()
+        Minimap:SetSize(_MinimapOriginalSize.width, _MinimapOriginalSize.height)
         for i, v in ipairs(MinimapLoc) do
             Minimap:SetPoint(unpack(v))
         end
@@ -1045,7 +1062,7 @@ end
 -- Dropdown Menu
 function BattlefieldMapTab_OnClick(self, button)
     if button == "RightButton" then
-        ShowDropDownMenu{
+        local options           = {
             -- The original
             {
                 text            = SHOW_BATTLEFIELDMINIMAP_PLAYERS,
@@ -1215,6 +1232,20 @@ function BattlefieldMapTab_OnClick(self, button)
                                 Minimap:EnableMouse(not (_MinimapControlled and value))
                             end,
                         }
+                    },
+                    {
+                        text    = _Locale["The Minimap Size"] .. " - " .. _SVDB.MinimapSize,
+                        click   = function()
+                            local scale = PickRange(_Locale["Choose Minimap Scale"], 100, 400, 5, _SVDB.MinimapSize)
+                            if not scale then return end
+
+                            _SVDB.MinimapSize = scale
+                            if _IncludeMinimap then
+                                Minimap:SetSize(_SVDB.MinimapSize, _SVDB.MinimapSize)
+                                Minimap:SetZoom(Minimap:GetZoom() + 1)
+                                Minimap:SetZoom(Minimap:GetZoom() - 1)
+                            end
+                        end,
                     }
                 }
             },
@@ -1246,6 +1277,8 @@ function BattlefieldMapTab_OnClick(self, button)
                 }
             },
         }
+        FireSystemEvent("EBFM_SHOW_MENU", options)
+        ShowDropDownMenu(options)
     else
         BattlefieldMapTab:OnClick(button)
     end

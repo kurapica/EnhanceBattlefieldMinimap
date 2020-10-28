@@ -1,3 +1,6 @@
+2020/10/28 v101
+	1. Configs for the minimap and handynotes are added in the menu.
+
 2020/10/20 v100
 	1. The drop menu is added with many features.
 	2. The frame strata can be changed, so you can put the map in the background or the very font.
