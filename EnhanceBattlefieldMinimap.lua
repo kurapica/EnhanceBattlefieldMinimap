@@ -9,6 +9,8 @@
 Scorpio            "EnhanceBattlefieldMinimap"       "2.0.1"
 --========================================================--
 
+import "System.Reactive"
+
 local OriginOnMouseWheel
 local ORIGIN_WIDTH, ORIGIN_HEIGHT
 local ORIGIN_AddWorldQuest
@@ -105,6 +107,12 @@ function OnEnable(self)
         Next()
     end
 
+    BFMScrollContainer  = BattlefieldMapFrame.ScrollContainer
+
+    if not BattlefieldMapFrame:IsShown() then
+        Next(Observable.From(Frame(BattlefieldMapFrame).OnShow))
+    end
+
     ORDER_RESOURCES_CURRENCY_ID = 1220
     azeriteCurrencyID = C_CurrencyInfo.GetAzeriteCurrencyID()
     warResourcesCurrencyID = C_CurrencyInfo.GetWarResourcesCurrencyID()
@@ -118,7 +126,6 @@ function OnEnable(self)
     ORIGIN_WIDTH        = BattlefieldMapFrame:GetWidth()
     ORIGIN_HEIGHT       = BattlefieldMapFrame:GetHeight()
 
-    BFMScrollContainer  = BattlefieldMapFrame.ScrollContainer
     BFMScrollContainer:HookScript("OnShow", Container_OnShow)
     BFMScrollContainer:HookScript("OnHide", Container_OnHide)
     BFMScrollContainer:HookScript("OnMouseDown", Container_OnMouseDown)
@@ -508,6 +515,7 @@ function PLAYER_ENTERING_BATTLEGROUND()
     if BFMScrollContainer and _SVDB.OnlyBattleField then
         -- Show when enter the battleround
         BFMScrollContainer:Show()
+        BattlefieldMapFrame:Show()
     end
 end
 
