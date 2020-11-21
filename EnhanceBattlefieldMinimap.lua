@@ -1291,6 +1291,3 @@ function BattlefieldMapTab_OnClick(self, button)
         BattlefieldMapTab:OnClick(button)
     end
 end
-
--- HotFix
-pcall(_G.ObjectiveTracker_Initialize, _G.ObjectiveTrackerFrame)
