@@ -35,7 +35,7 @@ ORIGIN_PLAYER_TEXTURE   = [[Interface\WorldMap\WorldMapArrow]]
 --            Addon Event Handler           --
 ----------------------------------------------
 function OnLoad(self)
-    _SVDB = SVManager.SVCharManager("EnhanceBattlefieldMinimap_DB")
+    _SVDB               = SVManager.SVCharManager("EnhanceBattlefieldMinimap_DB")
 
     _SVDB:SetDefault {
         -- Display Status
@@ -114,7 +114,7 @@ function OnEnable(self)
     end
 
     ORDER_RESOURCES_CURRENCY_ID = 1220
-    azeriteCurrencyID = C_CurrencyInfo.GetAzeriteCurrencyID()
+    azeriteCurrencyID   = C_CurrencyInfo.GetAzeriteCurrencyID()
     warResourcesCurrencyID = C_CurrencyInfo.GetWarResourcesCurrencyID()
 
     BattlefieldMapTab:SetUserPlaced(true)   -- Fix the bug blz won't save location
@@ -533,14 +533,18 @@ function GetPlayerMapPos()
 
     local rects                 = MapRects[mapid]
 
-    if not rects then
+    if rects == nil then
         local _, topleft        = C_Map.GetWorldPosFromMapPos(mapid, CreateVector2D(0,0))
         local _, bottomright    = C_Map.GetWorldPosFromMapPos(mapid, CreateVector2D(1,1))
 
-        bottomright:Subtract(topleft)
-        rects                   = { topleft.x, topleft.y, bottomright.x, bottomright.y }
-        MapRects[mapid]         = rects
+        if topleft and bottomright then
+            bottomright:Subtract(topleft)
+            rects               = { topleft.x, topleft.y, bottomright.x, bottomright.y }
+            MapRects[mapid]     = rects
+        end
     end
+
+    if not rects then return end
 
     local x, y                  = UnitPosition("player")
     if not x then return end
