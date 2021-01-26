@@ -43,6 +43,7 @@ function OnLoad(self)
         MaskSize        = nil,
         Resizable       = true,
         BlockTab        = false,
+        ZoomTarget      = 1.0,
 
         -- Minimap
         IncludeMinimap  = false,
@@ -232,6 +233,8 @@ function OnEnable(self)
 
     Next()
 
+    pcall(BFMScrollContainer.SetZoomTarget, BFMScrollContainer, _SVDB.ZoomTarget)
+
     pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
     MapCanvasMixin.OnShow(BattlefieldMapFrame)
 
@@ -247,6 +250,10 @@ function OnEnable(self)
 
     ReplacePartyPin()
     BlockTabFrame()
+end
+
+function OnQuit(self)
+    _SVDB.ZoomTarget    = BFMScrollContainer:GetCanvasScale()
 end
 
 __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
