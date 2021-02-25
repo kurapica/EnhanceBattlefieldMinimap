@@ -182,8 +182,10 @@ function OnEnable(self)
     BattlefieldZoneTextFrame:SetScript("OnMouseUp", function(self)
         self:StopMovingOrSizing()
 
-        _SVDB.ZoneLocation.x = self:GetLeft() - BFMScrollContainer:GetLeft()
-        _SVDB.ZoneLocation.y = self:GetTop() - BFMScrollContainer:GetTop()
+        local loc               = LayoutFrame.GetLocation(self, { Anchor("TOPLEFT") })
+
+        _SVDB.ZoneLocation.x    = loc[1].x
+        _SVDB.ZoneLocation.y    = loc[1].y
 
         self:ClearAllPoints()
         self:SetPoint("TOPLEFT", BFMScrollContainer, "TOPLEFT", _SVDB.ZoneLocation.x, _SVDB.ZoneLocation.y)
@@ -1299,6 +1301,16 @@ function BattlefieldMapTab_OnClick(self, button)
         FireSystemEvent("EBFM_SHOW_MENU", options)
         ShowDropDownMenu(options)
     else
-        BattlefieldMapTab:OnClick(button)
+        -- If frame is not locked then allow the frame to be dragged or dropped
+        if self:GetButtonState() == "PUSHED" then
+            self:StopMovingOrSizing()
+        else
+            -- If locked don't allow any movement
+            if BattlefieldMapOptions.locked then
+                return
+            else
+                self:StartMoving()
+            end
+        end
     end
 end
