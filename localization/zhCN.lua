@@ -48,8 +48,8 @@ L["Replace Player Arrow"]                                         = "替换玩�
 L["Replace Party Member"]                                         = "替换队伍成员"
 L["Replace Raid Member"]                                          = "替换团队成员"
 
-L["Enable"]													      = "启用"
+L["Enable"]                                                       = "启用"
 L["Pin Scale"]                                                    = "图标缩放"
 
-L["The Minimap Size"] 											  = "小地图大小"
+L["The Minimap Size"]                                             = "小地图大小"
 L["Choose Minimap Scale"]                                         = "选择小地图大小"

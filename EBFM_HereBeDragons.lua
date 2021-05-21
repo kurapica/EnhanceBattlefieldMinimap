@@ -25,7 +25,7 @@ __SystemEvent__()
 function EBFM_DATAPROVIDER_INIT(map)
     if not _G.LibStub then return end
     local ok, ret           = pcall(_G.LibStub, "HereBeDragons-Pins-2.0")
-print("Found HereBeDragons-Pins-2", ok, ret)
+
     if not ok then return end
     HBD_Pins                = ret
 

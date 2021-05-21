@@ -77,8 +77,8 @@ function OnLoad(self)
 
         -- Replace pin
         ReplacePlayerPin= false,
-        ReplacePartyPin = false,
-        ReplaceRaidPin  = false,
+        ReplacePartyPin = not Scorpio.IsRetail,
+        ReplaceRaidPin  = not Scorpio.IsRetail,
 
         -- Area Label Scale
         AreaLabelScale  = 0.5,
@@ -95,6 +95,10 @@ function OnLoad(self)
         -- Enable the mouse coordinate
         EnableCoordinate= true,
     }
+
+    if not Scorpio.IsRetail then
+        _G.BattlefieldMapAllowed = function() return true end
+    end
 end
 
 __Async__()
@@ -114,9 +118,11 @@ function OnEnable(self)
         Next(Observable.From(Frame(BattlefieldMapFrame).OnShow))
     end
 
-    ORDER_RESOURCES_CURRENCY_ID = 1220
-    azeriteCurrencyID   = C_CurrencyInfo.GetAzeriteCurrencyID()
-    warResourcesCurrencyID = C_CurrencyInfo.GetWarResourcesCurrencyID()
+    if Scorpio.IsRetail then
+        ORDER_RESOURCES_CURRENCY_ID = 1220
+        azeriteCurrencyID           = C_CurrencyInfo.GetAzeriteCurrencyID()
+        warResourcesCurrencyID      = C_CurrencyInfo.GetWarResourcesCurrencyID()
+    end
 
     BattlefieldMapTab:SetUserPlaced(true)   -- Fix the bug blz won't save location
     BattlefieldMapTab:SetScript("OnClick", BattlefieldMapTab_OnClick) -- Change the menu
@@ -212,6 +218,10 @@ function OnEnable(self)
     end
 
     _Enabled            = true
+
+    if not Scorpio.IsRetail then
+        BattlefieldMapFrame:SetGlobalPinScale(1)
+    end
 
     AddRestDataProvider(BattlefieldMapFrame)
 
@@ -391,14 +401,16 @@ function SetAreaLabelScale(opt)
     UpdateAreaLabelScale()
 end
 
-__SlashCmd__("ebfm", "worldquest", _Locale["[0.1-2] - set the scale of the world quest icon, default 0.5"])
-function SetWorldQuestScale(opt)
-    opt                         = Clamp(tonumber(opt) or 0, 0.1, 3)
-    _SVDB.WorldQuestScale       = opt
+if Scorpio.IsRetail then
+    __SlashCmd__("ebfm", "worldquest", _Locale["[0.1-2] - set the scale of the world quest icon, default 0.5"])
+    function SetWorldQuestScale(opt)
+        opt                     = Clamp(tonumber(opt) or 0, 0.1, 3)
+        _SVDB.WorldQuestScale   = opt
 
-    for _, pin in WORLD_QUEST_PIN_LIST:GetIterator() do
-        pin:SetScalingLimits(1, opt, opt)
-        pin:SetScale(opt)
+        for _, pin in WORLD_QUEST_PIN_LIST:GetIterator() do
+            pin:SetScalingLimits(1, opt, opt)
+            pin:SetScale(opt)
+        end
     end
 end
 
@@ -564,30 +576,37 @@ function GetPlayerMapPos()
 end
 
 function AddRestDataProvider(self)
-    self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin))
-    self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin))
-    self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin))
-    self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin))
-    self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin))
-    self:AddDataProvider(CreateFromMixins(InvasionDataProviderMixin))
-    self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin))
-    self:AddDataProvider(CreateFromMixins(BannerDataProvider))
-    self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin))
+    if Scorpio.IsRetail then
+        self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(InvasionDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(BannerDataProvider))
+        self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin))
+
+        local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
+        worldQuestDataProvider:SetMatchWorldMapFilters(true)
+        worldQuestDataProvider:SetUsesSpellEffect(true)
+        worldQuestDataProvider:SetCheckBounties(true)
+        worldQuestDataProvider:SetMarkActiveQuests(true)
+        ORIGIN_AddWorldQuest    = worldQuestDataProvider.AddWorldQuest
+        worldQuestDataProvider.AddWorldQuest = AddWorldQuest
+        self:AddDataProvider(worldQuestDataProvider)
+        _WorldQuestDataProvider = worldQuestDataProvider
+    else
+        self:AddDataProvider(CreateFromMixins(BattlefieldFlagDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(GossipDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(FlightPointDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(AreaPOIDataProviderMixin));
+    end
 
     areaLabelDataProvider = CreateFromMixins(AreaLabelDataProviderMixin)
     areaLabelDataProvider:SetOffsetY(-10)
     self:AddDataProvider(areaLabelDataProvider)
     UpdateAreaLabelScale()
-
-    local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
-    worldQuestDataProvider:SetMatchWorldMapFilters(true)
-    worldQuestDataProvider:SetUsesSpellEffect(true)
-    worldQuestDataProvider:SetCheckBounties(true)
-    worldQuestDataProvider:SetMarkActiveQuests(true)
-    ORIGIN_AddWorldQuest        = worldQuestDataProvider.AddWorldQuest
-    worldQuestDataProvider.AddWorldQuest = AddWorldQuest
-    self:AddDataProvider(worldQuestDataProvider)
-    _WorldQuestDataProvider     = worldQuestDataProvider
 
     local pinFrameLevelsManager = self:GetPinFrameLevelsManager()
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT")
@@ -649,13 +668,13 @@ function UpdatePinTexture(self)
     if _SVDB.ReplacePartyPin then
         self:SetPinTexture("party", PIN_TEXTURE)
     else
-        self:SetPinTexture("party", IsInRaid() and "WhiteDotCircle-RaidBlips" or "WhiteCircle-RaidBlips")
+        self:SetPinTexture("party", not Scorpio.IsRetail and ORIGIN_PARTY_TEXTURE or IsInRaid() and "WhiteDotCircle-RaidBlips" or "WhiteCircle-RaidBlips")
     end
 
     if _SVDB.ReplaceRaidPin then
         self:SetPinTexture("raid", PIN_TEXTURE)
     else
-        self:SetPinTexture("raid", "WhiteCircle-RaidBlips")
+        self:SetPinTexture("raid", not Scorpio.IsRetail and ORIGIN_PARTY_TEXTURE or "WhiteCircle-RaidBlips")
     end
 end
 
@@ -743,6 +762,10 @@ function Container_OnEnter(self)
     if _SVDB.EnableCoordinate then
         while task == ENTER_TASK_ID and self:IsMouseOver() do
             local x, y  = self:GetCursorPosition()
+            if not Scorpio.IsRetail then
+            x           = x / self:GetScale()
+            y           = y / self:GetScale()
+            end
             x           = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
             y           = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
 
@@ -1289,6 +1312,7 @@ function BattlefieldMapTab_OnClick(self, button)
             {
                 text            = _Locale["World Quest Scale"] .. " - " .. _SVDB.WorldQuestScale,
                 click           = function() SetWorldQuestScale(PickRange(_Locale["Choose World Quest Scale"], 0.1, 3, 0.1, _SVDB.WorldQuestScale)) end,
+                disabled        = not Scorpio.IsRetail,
             },
             {
                 text            = _Locale["Border Color"],

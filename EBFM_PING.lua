@@ -85,7 +85,11 @@ end
 --             EBFMPingPinMixin             --
 ----------------------------------------------
 function EBFMPingPinMixin:OnLoad()
-    self:SetScalingLimits(1.0, 1.0, 2.00)
+    if Scorpio.IsRetail then
+        self:SetScalingLimits(1.0, 1.0, 2.00)
+    else
+        self:SetIgnoreGlobalPinScale(true)
+    end
     self:UseFrameLevelType("PIN_FRAME_LEVEL_MAP_HIGHLIGHT")
     self.UpdateTooltip = self.OnMouseEnter
 end
@@ -193,6 +197,10 @@ function Container_OnMouseUp(self, button)
         -- Click to ping
         local mapid             = TARGET_MAP:GetMapID()
         local x, y              = self:GetCursorPosition()
+        if not Scorpio.IsRetail then
+            x                   = x / self:GetEffectiveScale()
+            y                   = y / self:GetEffectiveScale()
+        end
         x                       = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
         y                       = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
 
