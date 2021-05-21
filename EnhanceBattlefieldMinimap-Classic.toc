@@ -6,6 +6,12 @@
 ## Dependencies: Blizzard_BattlefieldMap, Scorpio.Widget
 ## OptionalDeps: Blizzard_ObjectiveTracker, HandyNotes
 ## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariablesPerCharacter: EnhanceBattlefieldMinimap_DB
+
+BugFix.lua
+
+# Localization
 localization\zhCN.lua
 
 # Core
