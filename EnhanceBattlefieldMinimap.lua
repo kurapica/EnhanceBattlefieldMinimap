@@ -638,6 +638,13 @@ function AddRestDataProvider(self)
         return pin
     end
 
+    -- Fix the highlight pin
+    for provider in pairs(self.dataProviders) do
+        if provider.RefreshAllData == MapHighlightDataProviderMixin.RefreshAllData then
+            local pin           = provider.pin
+        end
+    end
+
     FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
 end
 
