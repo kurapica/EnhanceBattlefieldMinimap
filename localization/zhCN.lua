@@ -53,3 +53,6 @@ L["Pin Scale"]                                                    = "图标缩�
 
 L["The Minimap Size"]                                             = "小地图大小"
 L["Choose Minimap Scale"]                                         = "选择小地图大小"
+
+L["Use Global Profile"]                                           = "使用公用配置"
+L["on/off - Use global profile"]                                  = "on/off - 使用公用配置"

@@ -1,12 +1,13 @@
 ## Interface: 90005
 ## Title: EnhanceBattlefieldMinimap
 ## Author: kurapica125@outlook.com
-## Version: v110
+## Version: v111
 ## Notes: Enhance the Battlefield Minimap(Zone map) with several features, use /ebfm for help.
 ## Dependencies: Blizzard_BattlefieldMap, Scorpio.Widget
 ## OptionalDeps: Blizzard_ObjectiveTracker, HandyNotes
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
+## SavedVariables: EnhanceBattlefieldMinimap_GlobalDB
 ## SavedVariablesPerCharacter: EnhanceBattlefieldMinimap_DB
 
 BugFix.lua

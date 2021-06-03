@@ -6,9 +6,13 @@ if Scorpio.IsRetail then
 	end
 else
 	INITED 						= false
+    _G.BattlefieldMapAllowed 	= function() return true end
+
 	__SystemEvent__()
 	function EBFM_DATAPROVIDER_INIT(map)
 		BattlefieldMapFrame:UnregisterAllEvents()
+        BattlefieldMapFrame:SetGlobalPinScale(1)
+
 
 		INITED 					= true
 	end

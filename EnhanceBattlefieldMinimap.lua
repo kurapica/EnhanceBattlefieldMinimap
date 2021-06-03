@@ -12,7 +12,7 @@ Scorpio            "EnhanceBattlefieldMinimap"       "2.0.1"
 import "System.Reactive"
 
 local OriginOnMouseWheel
-local ORIGIN_WIDTH, ORIGIN_HEIGHT
+local ORIGIN_WIDTH, ORIGIN_HEIGHT = 250, 250
 local ORIGIN_AddWorldQuest
 local _WorldQuestDataProvider
 
@@ -35,15 +35,16 @@ ORIGIN_PLAYER_TEXTURE   = [[Interface\WorldMap\WorldMapArrow]]
 --            Addon Event Handler           --
 ----------------------------------------------
 function OnLoad(self)
-    _SVDB               = SVManager.SVCharManager("EnhanceBattlefieldMinimap_DB")
+    _SVGlobal           = SVManager("EnhanceBattlefieldMinimap_GlobalDB")
+    _SVChar             = SVManager.SVCharManager("EnhanceBattlefieldMinimap_DB")
 
-    _SVDB:SetDefault {
+    local default       = {
+        TabLocation     = nil,
+
         -- Display Status
-        CanvasScale     = 1.0,
         MaskSize        = nil,
         Resizable       = true,
         BlockTab        = false,
-        ZoomTarget      = 1.0,
 
         -- Minimap
         IncludeMinimap  = false,
@@ -96,9 +97,16 @@ function OnLoad(self)
         EnableCoordinate= true,
     }
 
-    if not Scorpio.IsRetail then
-        _G.BattlefieldMapAllowed = function() return true end
-    end
+    _SVGlobal:SetDefault(default)
+    _SVChar:SetDefault(default)
+
+    _SVChar:SetDefault {
+        CanvasScale     = 1.0,
+        ZoomTarget      = 1.0,
+        UseGlobal       = false,
+    }
+
+    _SVDB               = _SVChar.UseGlobal and _SVGlobal or _SVChar
 end
 
 __Async__()
@@ -139,7 +147,6 @@ function OnEnable(self)
     BFMScrollContainer:HookScript("OnMouseUp", Container_OnMouseUp)
     BFMScrollContainer:HookScript("OnEnter", Container_OnEnter)
 
-    BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
     BFMResizer          = Resizer("EBFMResizer", BFMScrollContainer)
     BFMResizer.ResizeTarget = BattlefieldMapFrame
     BFMResizer.OnStopResizing = BFMResizer_OnResized
@@ -156,12 +163,6 @@ function OnEnable(self)
     BattlefieldMapFrameBack:SetPoint("TOPLEFT", 0, 0)
     BattlefieldMapFrameBack:SetPoint("BOTTOMRIGHT", 0, 0)
     BattlefieldMapFrameBack:SetIgnoreParentScale(true)
-    BattlefieldMapFrameBack:SetAlpha(min(1 - (_G.BattlefieldMapOptions.opacity or 0), _SVDB.BorderColor.a))
-
-    Style[BattlefieldMapFrameBack] = {
-        backdrop            = { edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 2 },
-        backdropBorderColor = Color(_SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a),
-    }
 
     BattlefieldMapFrameCoordsFrame = CreateFrame("Frame", nil, BFMScrollContainer)
     BattlefieldMapFrameCoordsFrame:SetFrameStrata("HIGH")
@@ -178,7 +179,6 @@ function OnEnable(self)
     BattlefieldZoneTextFrame  = CreateFrame("Frame", nil, BFMScrollContainer)
     BattlefieldZoneTextFrame:SetFrameStrata("HIGH")
     BattlefieldZoneTextFrame:SetSize(40, 32)
-    BattlefieldZoneTextFrame:SetPoint("TOPLEFT", BFMScrollContainer, "TOPLEFT", _SVDB.ZoneLocation.x, _SVDB.ZoneLocation.y)
     BattlefieldZoneTextFrame:SetMovable(true)
     BattlefieldZoneTextFrame:EnableMouse(true)
     BattlefieldZoneTextFrame:EnableMouseWheel(true)
@@ -206,37 +206,23 @@ function OnEnable(self)
     BattlefieldZoneText       = BattlefieldZoneTextFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     BattlefieldZoneText:SetPoint("CENTER")
     BattlefieldZoneText.fonts = { BattlefieldZoneText:GetFont() }
-    BattlefieldZoneText:SetFont(BattlefieldZoneText.fonts[1], BattlefieldZoneText.fonts[2] * _SVDB.ZoneTextScale, BattlefieldZoneText.fonts[3])
-    BattlefieldZoneTextFrame:SetHeight(BattlefieldZoneText.fonts[2] * _SVDB.ZoneTextScale + 2)
 
-    UpdateZoneText()
-
-    -- Apply Settings
-    if _SVDB.MaskSize then
-        BattlefieldMapFrame:SetSize(_SVDB.MaskSize.width, _SVDB.MaskSize.height)
-        BattlefieldMapFrame:OnFrameSizeChanged()
-    end
-
-    _Enabled            = true
-
-    if not Scorpio.IsRetail then
-        BattlefieldMapFrame:SetGlobalPinScale(1)
-    end
+    local test          = Texture("test", BFMScrollContainer, "ARTWORK")
+    test:SetTexture(PIN_TEXTURE)
+    test:Hide()
+    ReplacePartyPin()
 
     AddRestDataProvider(BattlefieldMapFrame)
 
-    _IncludeMinimap     = _SVDB.IncludeMinimap
-    _MinimapControlled  = false
+    -- Apply Settings
+    ApplyDBSettings()
 
-    if _SVDB.ShowZoneText then
-        BattlefieldZoneTextFrame:Show()
-    else
-        BattlefieldZoneTextFrame:Hide()
-    end
+    _Enabled            = true
+
+    _MinimapControlled  = false
 
     if BattlefieldMapFrame:IsVisible() then
         LockOnPlayer(BFMScrollContainer)
-        TryInitMinimap()
     end
 
     _M:SecureHook(BattlefieldMapFrame, "UpdateUnitsVisibility")
@@ -245,27 +231,15 @@ function OnEnable(self)
 
     Next()
 
-    pcall(BFMScrollContainer.SetZoomTarget, BFMScrollContainer, _SVDB.ZoomTarget)
+    pcall(BFMScrollContainer.SetZoomTarget, BFMScrollContainer, _SVChar.ZoomTarget)
 
     pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
     MapCanvasMixin.OnShow(BattlefieldMapFrame)
-
-    BFMScrollContainer:EnableMouse(not _SVDB.BlockMouse)
-    BFMScrollContainer:EnableMouseWheel(not _SVDB.BlockMouse)
-    BattlefieldMapFrame:EnableMouse(not _SVDB.BlockMouse)
-
-    local test          = Texture("test", BFMScrollContainer, "ARTWORK")
-    test:SetTexture(PIN_TEXTURE)
-    test:Hide()
-
-    BattlefieldMapFrame:SetFrameStrata(_SVDB.FrameStrata)
-
-    ReplacePartyPin()
-    BlockTabFrame()
 end
 
 function OnQuit(self)
-    _SVDB.ZoomTarget    = BFMScrollContainer:GetCanvasScale()
+    _SVChar.ZoomTarget    = BFMScrollContainer:GetCanvasScale()
+    _SVDB.TabLocation     = LayoutFrame.GetLocation(BattlefieldMapTab)
 end
 
 __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
@@ -278,6 +252,25 @@ function resetlocaton()
     _SVDB.MaskSize      = Size(ORIGIN_WIDTH, ORIGIN_HEIGHT)
     BattlefieldMapFrame:SetSize(ORIGIN_WIDTH, ORIGIN_HEIGHT)
     BattlefieldMapFrame:OnFrameSizeChanged()
+end
+
+__SlashCmd__("ebfm", "global", _Locale["on/off - Use global profile"])
+function ToggleGlobal(opt)
+    if opt == "on" then
+        if _SVDB ~= _SVGlobal then
+            _SVChar.UseGlobal   = true
+            _SVDB               = _SVGlobal
+            ApplyDBSettings()
+        end
+    elseif opt == "off" then
+        if _SVDB ~= _SVChar then
+            _SVChar.UseGlobal   = false
+            _SVDB               = _SVChar
+            ApplyDBSettings()
+        end
+    else
+        return false
+    end
 end
 
 __SlashCmd__("ebfm", "incminimap", _Locale["on/off/always - embed the minimap"])
@@ -445,11 +438,7 @@ __SlashCmd__("ebfm", "onlybg", _Locale["on/off - whether only show in battlegrou
 function ToggleOnlyBattlefield(opt)
     if opt == "on" then
         _SVDB.OnlyBattleField = true
-        if _InBattleField then
-            BFMScrollContainer:Show()
-        else
-            BFMScrollContainer:Hide()
-        end
+        BFMScrollContainer:SetShown(_InBattleField)
     elseif opt == "off" then
         _SVDB.OnlyBattleField = false
         BFMScrollContainer:Show()
@@ -495,7 +484,7 @@ function ZONE_CHANGED_NEW_AREA()
     UpdateZoneText()
     Next()
     if BFMScrollContainer.zoomLevels then
-        BFMScrollContainer:SetZoomTarget(_SVDB.CanvasScale)
+        BFMScrollContainer:SetZoomTarget(_SVChar.CanvasScale)
     end
 end
 
@@ -515,7 +504,7 @@ function ZONE_CHANGED()
 
             Next()
             if BFMScrollContainer.zoomLevels then
-                BFMScrollContainer:SetZoomTarget(_SVDB.CanvasScale)
+                BFMScrollContainer:SetZoomTarget(_SVChar.CanvasScale)
             end
         end
     end
@@ -606,7 +595,6 @@ function AddRestDataProvider(self)
     areaLabelDataProvider = CreateFromMixins(AreaLabelDataProviderMixin)
     areaLabelDataProvider:SetOffsetY(-10)
     self:AddDataProvider(areaLabelDataProvider)
-    UpdateAreaLabelScale()
 
     local pinFrameLevelsManager = self:GetPinFrameLevelsManager()
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT")
@@ -625,8 +613,6 @@ function AddRestDataProvider(self)
     pinFrameLevelsManager.definitions.PIN_FRAME_LEVEL_GROUP_MEMBER = nil
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GROUP_MEMBER")
 
-    UpdatePlayerScale()
-
     local oldAcquirePin         = self.AcquirePin
     self.AcquirePin             = function(self, pinTemplate, ...)
         local pin               = oldAcquirePin(self, pinTemplate, ...)
@@ -636,13 +622,6 @@ function AddRestDataProvider(self)
         end
 
         return pin
-    end
-
-    -- Fix the highlight pin
-    for provider in pairs(self.dataProviders) do
-        if provider.RefreshAllData == MapHighlightDataProviderMixin.RefreshAllData then
-            local pin           = provider.pin
-        end
     end
 
     FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
@@ -697,9 +676,6 @@ end
 function ReplacePartyPin()
     local pin                   = BattlefieldMapFrame.groupMembersDataProvider.pin
     hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
-    UpdatePlayerPinTexture()
-    UpdatePinTexture()
-    UpdateClassColor()
 
     -- Keep player arrow above party and raid, and keep party member dots above raid dots.
     pin:SetAppearanceField("party", "sublevel", 1)
@@ -816,7 +792,7 @@ end
 
 function Container_OnMouseWheel(self, delta)
     OriginOnMouseWheel(self, delta)
-    _SVDB.CanvasScale   = BFMScrollContainer:GetCanvasScale()
+    _SVChar.CanvasScale   = BFMScrollContainer:GetCanvasScale()
 end
 
 function BFMResizer_OnResized(self)
@@ -880,18 +856,21 @@ function SaveMinimapLocation()
 end
 
 function TryInitMinimap()
-    if _IncludeMinimap and (BFMScrollContainer:IsVisible() or _SVDB.AlwaysInclude) and not _MinimapControlled then
-        _MinimapControlled = true
-        _MinimapOriginalSize = Size(Minimap:GetSize())
-        Minimap:EnableMouse(not _SVDB.BlockEmbedMap)
-        SaveMinimapLocation()
-        Minimap:SetSize(_SVDB.MinimapSize, _SVDB.MinimapSize)
-        Minimap:SetZoom(Minimap:GetZoom() + 1)
-        Minimap:SetZoom(Minimap:GetZoom() - 1)
-        Minimap_OnEnter(Minimap)
-        if not UnitPosition("player") then
-            Minimap:Hide()
+    if _IncludeMinimap and (BFMScrollContainer:IsVisible() or _SVDB.AlwaysInclude) then
+        if not _MinimapControlled then
+            _MinimapControlled = true
+            _MinimapOriginalSize = Size(Minimap:GetSize())
+            SaveMinimapLocation()
+            Minimap:SetZoom(Minimap:GetZoom() + 1)
+            Minimap:SetZoom(Minimap:GetZoom() - 1)
+            Minimap_OnEnter(Minimap)
+            if not UnitPosition("player") then
+                Minimap:Hide()
+            end
         end
+
+        Minimap:EnableMouse(not _SVDB.BlockEmbedMap)
+        Minimap:SetSize(_SVDB.MinimapSize, _SVDB.MinimapSize)
     end
 end
 
@@ -943,7 +922,8 @@ function UpdateZoneText()
     for pin in BattlefieldMapFrame:EnumeratePinsByTemplate("MapHighlightPinTemplate") do
         if not pin:IsIgnoringGlobalPinScale() then
             pin:SetIgnoreGlobalPinScale(true)
-            pin:ApplyCurrentScale()
+            pin:SetScale(1)
+            pin:ApplyCurrentPosition()
         end
     end
 end
@@ -965,6 +945,60 @@ function UpdateAreaLabelScale()
 
     name:SetFont( name.originfont[1], name.originfont[2] * _SVDB.AreaLabelScale, name.originfont[3])
     description:SetFont( description.originfont[1], description.originfont[2] * _SVDB.AreaLabelScale, description.originfont[3])
+end
+
+function ApplyDBSettings()
+    if _SVDB.TabLocation then
+        LayoutFrame.SetLocation(BattlefieldMapTab, _SVDB.TabLocation)
+    end
+
+    if _SVDB.MaskSize then
+        BattlefieldMapFrame:SetSize(_SVDB.MaskSize.width, _SVDB.MaskSize.height)
+        BattlefieldMapFrame:OnFrameSizeChanged()
+    end
+
+    BFMScrollContainer:EnableMouse(not _SVDB.BlockMouse)
+    BFMScrollContainer:EnableMouseWheel(not _SVDB.BlockMouse)
+    BattlefieldMapFrame:EnableMouse(not _SVDB.BlockMouse)
+
+    BattlefieldMapFrame:SetResizable(_SVDB.Resizable)
+    BattlefieldMapFrame:SetFrameStrata(_SVDB.FrameStrata)
+
+    BattlefieldZoneTextFrame:SetShown(_SVDB.ShowZoneText)
+    BattlefieldZoneTextFrame:ClearAllPoints()
+    BattlefieldZoneTextFrame:SetPoint("TOPLEFT", BFMScrollContainer, "TOPLEFT", _SVDB.ZoneLocation.x, _SVDB.ZoneLocation.y)
+
+    BattlefieldZoneText:SetFont(BattlefieldZoneText.fonts[1], BattlefieldZoneText.fonts[2] * _SVDB.ZoneTextScale, BattlefieldZoneText.fonts[3])
+    BattlefieldZoneTextFrame:SetHeight(BattlefieldZoneText.fonts[2] * _SVDB.ZoneTextScale + 2)
+    UpdateZoneText()
+
+    UpdateAreaLabelScale()
+
+    _IncludeMinimap     = _SVDB.IncludeMinimap
+    if _IncludeMinimap and (BFMScrollContainer:IsVisible() or _SVDB.AlwaysInclude) then
+        TryInitMinimap()
+    else
+        SendBackMinimap()
+    end
+
+    BattlefieldMapFrameBack:SetAlpha(min(1 - (_G.BattlefieldMapOptions.opacity or 0), _SVDB.BorderColor.a))
+    Style[BattlefieldMapFrameBack] = {
+        backdrop            = { edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 2 },
+        backdropBorderColor = Color(_SVDB.BorderColor.r, _SVDB.BorderColor.g, _SVDB.BorderColor.b, _SVDB.BorderColor.a),
+    }
+
+    UpdatePlayerPinTexture()
+    UpdatePinTexture()
+    UpdatePlayerScale()
+    UpdateClassColor()
+
+    BlockTabFrame()
+
+    if Scorpio.IsRetail then
+        SetWorldQuestScale(_SVDB.WorldQuestScale)
+    end
+
+    ToggleOnlyBattlefield(_SVDB.OnlyBattleField and "on" or "off")
 end
 
 ----------------------------------------------
@@ -1134,6 +1168,13 @@ function BattlefieldMapTab_OnClick(self, button)
                 click           = function() BattlefieldMapTab:ShowOpacity() end,
             },
             -- The EBFM Part
+            {
+                text            = _Locale["Use Global Profile"],
+                check           = {
+                    get         = function() return _SVChar.UseGlobal end,
+                    set         = function(value) ToggleGlobal(value and "on" or "off") end,
+                }
+            },
             {
                 text            = _Locale["Enable Mouse"],
                 check           = {

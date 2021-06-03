@@ -1,3 +1,7 @@
+2020/06/03 v111
+	1. You can turn on the `Use Global Profile` option to apply settings on all your characters.
+	2. Fix the map high light.
+
 2020/10/28 v101
 	1. Configs for the minimap and handynotes are added in the menu.
 
