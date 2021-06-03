@@ -13,7 +13,6 @@ else
 		BattlefieldMapFrame:UnregisterAllEvents()
         BattlefieldMapFrame:SetGlobalPinScale(1)
 
-
 		INITED 					= true
 	end
 

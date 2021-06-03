@@ -107,6 +107,10 @@ function OnLoad(self)
     }
 
     _SVDB               = _SVChar.UseGlobal and _SVGlobal or _SVChar
+
+    if _SVChar.LastOpen then
+        ToggleBattlefieldMap()
+    end
 end
 
 __Async__()
@@ -212,12 +216,12 @@ function OnEnable(self)
     test:Hide()
     ReplacePartyPin()
 
+    _Enabled            = true
+
     AddRestDataProvider(BattlefieldMapFrame)
 
     -- Apply Settings
     ApplyDBSettings()
-
-    _Enabled            = true
 
     _MinimapControlled  = false
 
@@ -238,8 +242,9 @@ function OnEnable(self)
 end
 
 function OnQuit(self)
-    _SVChar.ZoomTarget    = BFMScrollContainer:GetCanvasScale()
-    _SVDB.TabLocation     = LayoutFrame.GetLocation(BattlefieldMapTab)
+    _SVChar.ZoomTarget      = BFMScrollContainer:GetCanvasScale()
+    _SVChar.LastOpen        = BattlefieldMapFrame:IsShown()
+    _SVDB.TabLocation       = LayoutFrame.GetLocation(BattlefieldMapTab)
 end
 
 __SlashCmd__("ebfm", "reset", _Locale["reset the zone map"])
@@ -618,13 +623,13 @@ function AddRestDataProvider(self)
         local pin               = oldAcquirePin(self, pinTemplate, ...)
 
         if pin then
-            FireSystemEvent("EBFM_PIN_ACQUIRED", pinTemplate, pin)
+            Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pinTemplate, pin)
         end
 
         return pin
     end
 
-    FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
+    Scorpio.FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
 end
 
 function UpdatePlayerScale()
@@ -1370,7 +1375,7 @@ function BattlefieldMapTab_OnClick(self, button)
                 }
             },
         }
-        FireSystemEvent("EBFM_SHOW_MENU", options)
+        Scorpio.FireSystemEvent("EBFM_SHOW_MENU", options)
         ShowDropDownMenu(options)
     else
         -- If frame is not locked then allow the frame to be dragged or dropped
