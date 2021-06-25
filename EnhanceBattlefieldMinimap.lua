@@ -22,7 +22,7 @@ local _IncludeMinimap, _MinimapControlled, _MinimapOriginalSize
 
 local Enum              = _G.Enum
 local _InBattleField    = false
-
+local MinimapLoc, MinimapParent, MinimapStrata, MinimapLevel
 export { min = math.min }
 
 WORLD_QUEST_PIN_LIST    = List()
@@ -138,6 +138,11 @@ function OnEnable(self)
 
     BattlefieldMapTab:SetUserPlaced(true)   -- Fix the bug blz won't save location
     BattlefieldMapTab:SetScript("OnClick", BattlefieldMapTab_OnClick) -- Change the menu
+    BattlefieldMapTab:SetScript("OnDragStop", Toolset.fakefunc)
+    BattlefieldMapTab:SetScript("OnDragStart", Toolset.fakefunc)
+
+    BattlefieldMapFrame:ClearAllPoints()
+    BattlefieldMapFrame:SetPoint("TOPLEFT", BattlefieldMapTab, "BOTTOMLEFT", 0, -5)
 
     BattlefieldMapFrame:SetShouldNavigateOnClick(true)
     BattlefieldMapFrame.UpdatePinNudging = UpdatePinNudging
@@ -222,8 +227,6 @@ function OnEnable(self)
 
     -- Apply Settings
     ApplyDBSettings()
-
-    _MinimapControlled  = false
 
     if BattlefieldMapFrame:IsVisible() then
         LockOnPlayer(BFMScrollContainer)
@@ -807,6 +810,8 @@ end
 
 __Async__()
 function Minimap_OnEnter(self)
+    Next()
+
     if _MinimapControlled and BFMScrollContainer:IsVisible() then
         Minimap:SetAlpha(1)
         Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
@@ -837,13 +842,16 @@ function Minimap_OnEnter(self)
 end
 
 function SaveMinimapLocation()
-    MinimapLoc = {}
-    MinimapParent = Minimap:GetParent()
-    MinimapStrata = Minimap:GetFrameStrata()
-    MinimapLevel  = Minimap:GetFrameLevel()
+    if not MinimapParent then
+        MinimapLoc = {}
+        MinimapParent = Minimap:GetParent()
+        MinimapStrata = Minimap:GetFrameStrata()
+        MinimapLevel  = Minimap:GetFrameLevel()
+        _MinimapOriginalSize = Size(Minimap:GetSize())
 
-    for i = 1, Minimap:GetNumPoints() do
-        MinimapLoc[i] = { Minimap:GetPoint(i) }
+        for i = 1, Minimap:GetNumPoints() do
+            MinimapLoc[i] = { Minimap:GetPoint(i) }
+        end
     end
 
     if #MinimapLoc == 1 and MinimapLoc[1][2] == MinimapCluster then
@@ -864,7 +872,6 @@ function TryInitMinimap()
     if _IncludeMinimap and (BFMScrollContainer:IsVisible() or _SVDB.AlwaysInclude) then
         if not _MinimapControlled then
             _MinimapControlled = true
-            _MinimapOriginalSize = Size(Minimap:GetSize())
             SaveMinimapLocation()
             Minimap:SetZoom(Minimap:GetZoom() + 1)
             Minimap:SetZoom(Minimap:GetZoom() - 1)
@@ -903,6 +910,8 @@ function SendBackMinimap()
             MinimapBackdrop:Show()
         end
     end
+
+    print("SendBackMinimap", _MinimapControlled)
 end
 
 function UpdateZoneText()
@@ -1377,17 +1386,18 @@ function BattlefieldMapTab_OnClick(self, button)
         }
         Scorpio.FireSystemEvent("EBFM_SHOW_MENU", options)
         ShowDropDownMenu(options)
-    else
-        -- If frame is not locked then allow the frame to be dragged or dropped
-        if self:GetButtonState() == "PUSHED" then
-            self:StopMovingOrSizing()
-        else
-            -- If locked don't allow any movement
-            if BattlefieldMapOptions.locked then
-                return
-            else
-                self:StartMoving()
+    elseif button == "LeftButton" and not BattlefieldMapOptions.locked then
+        Next(function()
+            for i = 1, 6 do
+                if not IsMouseButtonDown("LeftButton") then return end
+                Next()
             end
-        end
+
+            self:StartMoving()
+
+            while IsMouseButtonDown("LeftButton") do Next() end
+
+            self:StopMovingOrSizing()
+        end)
     end
 end
