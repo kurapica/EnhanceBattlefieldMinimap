@@ -910,8 +910,6 @@ function SendBackMinimap()
             MinimapBackdrop:Show()
         end
     end
-
-    print("SendBackMinimap", _MinimapControlled)
 end
 
 function UpdateZoneText()
