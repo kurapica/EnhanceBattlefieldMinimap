@@ -689,7 +689,6 @@ function ReplacePartyPin()
 
     for pin in BattlefieldMapFrame:EnumerateAllPins() do
         if pin.UpdateAppearanceData and pin:GetObjectType() == "UnitPositionFrame" then
-            print("hooked", pin, pin == realpin)
             hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
             UpdatePlayerPinTexture(pin)
             UpdatePinTexture(pin)
