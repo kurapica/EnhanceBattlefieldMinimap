@@ -219,6 +219,9 @@ function OnEnable(self)
     local test          = Texture("test", BFMScrollContainer, "ARTWORK")
     test:SetTexture(PIN_TEXTURE)
     test:Hide()
+
+    Next()
+
     ReplacePartyPin()
 
     _Enabled            = true
@@ -682,12 +685,23 @@ function UpdateClassColor(self)
 end
 
 function ReplacePartyPin()
-    local pin                   = BattlefieldMapFrame.groupMembersDataProvider.pin
-    hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
+    local realpin               = BattlefieldMapFrame.groupMembersDataProvider.pin
 
-    -- Keep player arrow above party and raid, and keep party member dots above raid dots.
-    pin:SetAppearanceField("party", "sublevel", 1)
-    pin:SetAppearanceField("raid", "sublevel", 0)
+    for pin in BattlefieldMapFrame:EnumerateAllPins() do
+        if pin.UpdateAppearanceData and pin:GetObjectType() == "UnitPositionFrame" then
+            print("hooked", pin, pin == realpin)
+            hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
+            UpdatePlayerPinTexture(pin)
+            UpdatePinTexture(pin)
+            UpdateClassColor(pin)
+
+            -- Keep player arrow above party and raid, and keep party member dots above raid dots.
+            pin:SetAppearanceField("party", "sublevel", 1)
+            pin:SetAppearanceField("raid", "sublevel", 0)
+
+            if pin ~= realpin then pin:Hide() pin.Show = pin.Hide end
+        end
+    end
 end
 
 function BlockTabFrame()
