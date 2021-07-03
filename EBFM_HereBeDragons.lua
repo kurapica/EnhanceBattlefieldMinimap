@@ -5,6 +5,8 @@
 -- Create Date :  2019/08/31                              --
 --========================================================--
 
+if not IsAddOnLoaded("ClassicCodex") then return end
+
 --========================================================--
 Scorpio    "EnhanceBattlefieldMinimap.HereBeDragons" "1.0.0"
 --========================================================--

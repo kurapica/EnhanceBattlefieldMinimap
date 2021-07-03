@@ -35,12 +35,22 @@ function EBFM_DATAPROVIDER_INIT(map)
 
     map:AddDataProvider(worldmapProvider)
 
-    worldmapProvider:RefreshAllData()
-
     INITED              = true
 
     WorldMapFrame:HookScript("OnShow", WorldMapFrame_OnShow)
     WorldMapFrame:HookScript("OnHide", WorldMapFrame_OnHide)
+
+    _Enabled            = true
+
+    Continue(function()
+        -- Don't know when questie map will show icons, just a try
+        for i = 1, 3 do
+            Delay(4)
+            if not WorldMapFrame:IsShown() then
+                WorldMapFrame_OnHide()
+            end
+        end
+    end)
 end
 
 __SystemEvent__()
