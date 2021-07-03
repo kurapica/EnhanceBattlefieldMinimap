@@ -40,6 +40,7 @@ L["Block Minimap Interaction"]                                    = "内嵌小�
 L["on/off - Block the tab frame"]                                 = "on/off - 禁用Tab标签页"
 L["Disable The Tab Frame"]                                        = "禁用地图Tab标签页"
 L["The Frame Strata"]                                             = "图层"
+L["Enable the Interaction when mouse over and alt pressed"]       = "仅当鼠标在地图内并且按下Alt键时启用地图交互"
 
 
 L["Pin Texture"]                                                  = "人员材质"

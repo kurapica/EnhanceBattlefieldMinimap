@@ -89,6 +89,7 @@ function OnLoad(self)
 
         -- Block the mouse action on the map
         BlockMouse      = false,
+        UseAltOnly      = false,
 
         -- Only show in battlegroud
         OnlyBattleField = false,
@@ -245,6 +246,8 @@ function OnEnable(self)
 
     pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
     MapCanvasMixin.OnShow(BattlefieldMapFrame)
+
+    UseAltToInteraction()
 end
 
 function OnQuit(self)
@@ -854,6 +857,32 @@ function Minimap_OnEnter(self)
     end
 end
 
+__AsyncSingle__()
+function UseAltToInteraction()
+    if not _SVDB.UseAltOnly then return end
+
+    local original              = _SVDB.BlockMouse
+    local enable                = not _SVDB.BlockMouse
+
+    while _SVDB.UseAltOnly do
+        if BFMScrollContainer:IsMouseOver() and IsAltKeyDown() then
+            if not enable then
+                enable = true
+                EnableMouseAction("on")
+            end
+        elseif enable then
+            enable = false
+
+            EnableMouseAction("off")
+            Container_OnEnter(BFMScrollContainer)
+        end
+
+        Next()
+    end
+
+    EnableMouseAction(original and "off" or "on")
+end
+
 function SaveMinimapLocation()
     if not MinimapParent then
         MinimapLoc = {}
@@ -1208,6 +1237,13 @@ function BattlefieldMapTab_OnClick(self, button)
                 }
             },
             {
+                text            = _Locale["Enable the Interaction when mouse over and alt pressed"],
+                check           = {
+                    get         = function() return _SVDB.UseAltOnly end,
+                    set               = function(value) _SVDB.UseAltOnly = value UseAltToInteraction() end,
+                }
+            },
+            {
                 text            = _Locale["UnLock The Map"],
                 check           = {
                     get         = function() return _SVDB.Resizable end,
@@ -1218,7 +1254,7 @@ function BattlefieldMapTab_OnClick(self, button)
                 text            = _Locale["Disable The Tab Frame"],
                 check           = {
                     get         = function() return _SVDB.BlockTab end,
-                    set         = function(value) BlockMap(value and "on" or "off") end
+                    set         = function(value) BlockMap(value and "on" or "off") end,
                 }
             },
             {
