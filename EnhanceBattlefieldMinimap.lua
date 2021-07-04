@@ -724,7 +724,7 @@ function LockOnPlayer(self)
 
     Next() Next()
 
-    while self:IsVisible() and not self:IsMouseOver() do
+    while self:IsVisible() and (not self:IsMouseOver() or (_SVDB.UseAltOnly and not IsAltKeyDown())) do
         local x, y              = GetPlayerMapPos()
 
         if x then
@@ -767,7 +767,7 @@ function Container_OnEnter(self)
     BattlefieldMapFrameBack:SetAlpha(min(1, _SVDB.BorderColor.a))
 
     if _SVDB.EnableCoordinate then
-        while task == ENTER_TASK_ID and self:IsMouseOver() do
+        while task == ENTER_TASK_ID and self:IsMouseOver() and (not _SVDB.UseAltOnly or IsAltKeyDown()) do
             local x, y  = self:GetCursorPosition()
             if not Scorpio.IsRetail then
             x           = x / self:GetScale()
@@ -787,7 +787,7 @@ function Container_OnEnter(self)
     local st    = GetTime()
     local tar   = _G.BattlefieldMapOptions.opacity or 0
 
-    while task == ENTER_TASK_ID and not BattlefieldMapFrame:IsMouseOver() do
+    while task == ENTER_TASK_ID and (not BattlefieldMapFrame:IsMouseOver() or (_SVDB.UseAltOnly and not IsAltKeyDown()))  do
         local opacity = (GetTime() - st) / 2.0 * tar
 
         if opacity < tar then
@@ -796,6 +796,7 @@ function Container_OnEnter(self)
         else
             BattlefieldMapFrame:SetGlobalAlpha(1 - tar)
             BattlefieldMapFrameBack:SetAlpha(min(1 - tar, _SVDB.BorderColor.a))
+            ZONE_CHANGED()
             LockOnPlayer(BFMScrollContainer)
             break
         end
