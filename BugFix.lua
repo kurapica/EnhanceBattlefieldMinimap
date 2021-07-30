@@ -1,8 +1,20 @@
 Scorpio     "EnhanceBattlefieldMinimap.BugFix" "1.0.0"
 
 if Scorpio.IsRetail then
+	function _G.QuestSuperTracking_ShouldHighlightWorldQuests(uiMapID)
+		return SuperTrackEventFrame and SuperTrackEventFrame.uiMapID == uiMapID and SuperTrackEventFrame.worldQuests;
+	end
+
+	function _G.QuestSuperTracking_ShouldHighlightWorldQuestsElite(uiMapID)
+		return SuperTrackEventFrame and SuperTrackEventFrame.uiMapID == uiMapID and SuperTrackEventFrame.worldQuestsElite;
+	end
+
 	function _G.QuestSuperTracking_ShouldHighlightDungeons(uiMapID)
 		return SuperTrackEventFrame and SuperTrackEventFrame.uiMapID == uiMapID and SuperTrackEventFrame.dungeons;
+	end
+
+	function _G.QuestSuperTracking_ShouldHighlightTreasures(uiMapID)
+		return SuperTrackEventFrame and SuperTrackEventFrame.uiMapID == uiMapID and SuperTrackEventFrame.treasures;
 	end
 else
 	INITED 						= false
