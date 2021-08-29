@@ -1,11 +1,11 @@
 --========================================================--
---                EBFM ClassicCodex                         --
+--                EBFM HereBeDragons                      --
 --                                                        --
 -- Author      :  kurapica125@outlook.com                 --
 -- Create Date :  2019/08/31                              --
 --========================================================--
 
-if not IsAddOnLoaded("ClassicCodex") then return end
+if not (IsAddOnLoaded("ClassicCodex") or IsAddOnLoaded("TomTom")) then return end
 
 --========================================================--
 Scorpio    "EnhanceBattlefieldMinimap.HereBeDragons" "1.0.0"

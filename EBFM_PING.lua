@@ -193,7 +193,7 @@ function Container_OnMouseDown(self, button)
 end
 
 function Container_OnMouseUp(self, button)
-    if button == "LeftButton" and GetTime() - mouseDownTime < 0.3 then
+    if not (IsControlKeyDown() or IsShiftKeyDown() ) and button == "LeftButton" and GetTime() - mouseDownTime < 0.3 then
         -- Click to ping
         local mapid             = TARGET_MAP:GetMapID()
         local x, y              = self:GetCursorPosition()

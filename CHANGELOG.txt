@@ -1,3 +1,7 @@
+2021/08/29 v123
+	1. Add support to TomTom by Alt+right button click.
+	2. Add support to Blz way points by Ctrl+Left Button click.
+
 2020/06/03 v111
 	1. You can turn on the `Use Global Profile` option to apply settings on all your characters.
 	2. Fix the map high light.

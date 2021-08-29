@@ -589,6 +589,7 @@ function AddRestDataProvider(self)
         self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin))
         self:AddDataProvider(CreateFromMixins(BannerDataProvider))
         self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(WaypointLocationDataProviderMixin))
 
         local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
         worldQuestDataProvider:SetMatchWorldMapFilters(true)
@@ -623,6 +624,7 @@ function AddRestDataProvider(self)
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SUPER_TRACKED_QUEST")
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_BONUS_OBJECTIVE")
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_AREA_POI_BANNER")
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WAYPOINT_LOCATION")
 
     pinFrameLevelsManager.definitions.PIN_FRAME_LEVEL_GROUP_MEMBER = nil
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GROUP_MEMBER")
@@ -807,12 +809,19 @@ end
 
 function Container_OnMouseDown(self, button)
     if _MinimapControlled then Minimap:Hide() end
+
+    if IsAltKeyDown() or IsControlKeyDown() then
+        BFMScrollContainer:SetShouldNavigateOnClick(false)
+        BFMScrollContainer:SetShouldZoomInOnClick(false)
+    end
 end
 
 function Container_OnMouseUp(self, button)
     if button ~= "LeftButton" and button ~= "RightButton" then
         ZONE_CHANGED()
     end
+    BFMScrollContainer:SetShouldNavigateOnClick(true)
+    BFMScrollContainer:SetShouldZoomInOnClick(true)
 end
 
 function Container_OnMouseWheel(self, delta)
