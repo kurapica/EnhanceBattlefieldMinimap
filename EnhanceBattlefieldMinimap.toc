@@ -1,7 +1,10 @@
 ## Interface: 90100
+## Interface-Retail: 90100
+## Interface-Classic: 11307
+## Interface-BCC: 20502
 ## Title: EnhanceBattlefieldMinimap
 ## Author: kurapica125@outlook.com
-## Version: v123
+## Version: @project-version@
 ## Notes: Enhance the Battlefield Minimap(Zone map) with several features, use /ebfm for help.
 ## Dependencies: Blizzard_BattlefieldMap, Scorpio
 ## OptionalDeps: Blizzard_ObjectiveTracker, HandyNotes, TomTom
@@ -9,6 +12,7 @@
 ## LoadOnDemand: 0
 ## SavedVariables: EnhanceBattlefieldMinimap_GlobalDB
 ## SavedVariablesPerCharacter: EnhanceBattlefieldMinimap_DB
+## X-Curse-Project-ID: 262173
 
 BugFix.lua
 
