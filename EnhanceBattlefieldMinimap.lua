@@ -244,8 +244,8 @@ function OnEnable(self)
 
     pcall(BFMScrollContainer.SetZoomTarget, BFMScrollContainer, _SVChar.ZoomTarget)
 
-    pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
-    MapCanvasMixin.OnShow(BattlefieldMapFrame)
+    --pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
+    --MapCanvasMixin.OnShow(BattlefieldMapFrame)
 
     UseAltToInteraction()
 end
@@ -692,7 +692,7 @@ end
 function ReplacePartyPin()
     local realpin               = BattlefieldMapFrame.groupMembersDataProvider.pin
 
-    for pin in BattlefieldMapFrame:EnumerateAllPins() do
+    BattlefieldMapFrame:ExecuteOnAllPins(function(pin)
         if pin.UpdateAppearanceData and pin:GetObjectType() == "UnitPositionFrame" then
             hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
             UpdatePlayerPinTexture(pin)
@@ -705,7 +705,7 @@ function ReplacePartyPin()
 
             if pin ~= realpin then pin:Hide() pin.Show = pin.Hide end
         end
-    end
+    end)
 end
 
 function BlockTabFrame()
@@ -1088,12 +1088,17 @@ function UpdatePinNudging(self)
     end
 
     if self.pinNudgingDirty then
-        for targetPin in self:EnumerateAllPins() do
+        local function MapCanvasCalculatePinNudgingCallback(targetPin)
             self:CalculatePinNudging(targetPin)
         end
+
+        self:ExecuteOnAllPins(MapCanvasCalculatePinNudgingCallback)
     else
         for _, targetPin in ipairs(self.pinsToNudge) do
-            self:CalculatePinNudging(targetPin)
+            -- It's possible this pin was unattached before this update had a chance to run.
+            if targetPin:GetMap() == self then
+                self:CalculatePinNudging(targetPin)
+            end
         end
     end
 
