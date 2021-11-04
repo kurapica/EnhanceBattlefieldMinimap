@@ -244,8 +244,10 @@ function OnEnable(self)
 
     pcall(BFMScrollContainer.SetZoomTarget, BFMScrollContainer, _SVChar.ZoomTarget)
 
-    --pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
-    --MapCanvasMixin.OnShow(BattlefieldMapFrame)
+    if not Scorpio.IsRetail then
+        pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
+        MapCanvasMixin.OnShow(BattlefieldMapFrame)
+    end
 
     UseAltToInteraction()
 end
@@ -692,20 +694,37 @@ end
 function ReplacePartyPin()
     local realpin               = BattlefieldMapFrame.groupMembersDataProvider.pin
 
-    BattlefieldMapFrame:ExecuteOnAllPins(function(pin)
-        if pin.UpdateAppearanceData and pin:GetObjectType() == "UnitPositionFrame" then
-            hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
-            UpdatePlayerPinTexture(pin)
-            UpdatePinTexture(pin)
-            UpdateClassColor(pin)
+    if Scorpio.IsRetail then
+        BattlefieldMapFrame:ExecuteOnAllPins(function(pin)
+            if pin.UpdateAppearanceData and pin:GetObjectType() == "UnitPositionFrame" then
+                hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
+                UpdatePlayerPinTexture(pin)
+                UpdatePinTexture(pin)
+                UpdateClassColor(pin)
 
-            -- Keep player arrow above party and raid, and keep party member dots above raid dots.
-            pin:SetAppearanceField("party", "sublevel", 1)
-            pin:SetAppearanceField("raid", "sublevel", 0)
+                -- Keep player arrow above party and raid, and keep party member dots above raid dots.
+                pin:SetAppearanceField("party", "sublevel", 1)
+                pin:SetAppearanceField("raid", "sublevel", 0)
 
-            if pin ~= realpin then pin:Hide() pin.Show = pin.Hide end
+                if pin ~= realpin then pin:Hide() pin.Show = pin.Hide end
+            end
+        end)
+    else
+        for pin in BattlefieldMapFrame:EnumerateAllPins() do
+            if pin.UpdateAppearanceData and pin:GetObjectType() == "UnitPositionFrame" then
+                hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
+                UpdatePlayerPinTexture(pin)
+                UpdatePinTexture(pin)
+                UpdateClassColor(pin)
+
+                -- Keep player arrow above party and raid, and keep party member dots above raid dots.
+                pin:SetAppearanceField("party", "sublevel", 1)
+                pin:SetAppearanceField("raid", "sublevel", 0)
+
+                if pin ~= realpin then pin:Hide() pin.Show = pin.Hide end
+            end
         end
-    end)
+    end
 end
 
 function BlockTabFrame()
@@ -1082,28 +1101,47 @@ function CalculateViewRect(self, scale)
     return viewRect
 end
 
-function UpdatePinNudging(self)
-    if not self.pinNudgingDirty and #self.pinsToNudge == 0 then
-        return
-    end
-
-    if self.pinNudgingDirty then
-        local function MapCanvasCalculatePinNudgingCallback(targetPin)
-            self:CalculatePinNudging(targetPin)
+if Scorpio.IsRetail then
+    function UpdatePinNudging(self)
+        if not self.pinNudgingDirty and #self.pinsToNudge == 0 then
+            return
         end
 
-        self:ExecuteOnAllPins(MapCanvasCalculatePinNudgingCallback)
-    else
-        for _, targetPin in ipairs(self.pinsToNudge) do
-            -- It's possible this pin was unattached before this update had a chance to run.
-            if targetPin:GetMap() == self then
+        if self.pinNudgingDirty then
+            self:ExecuteOnAllPins(function(pin)
+                self:CalculatePinNudging(pin)
+            end)
+        else
+            for _, targetPin in ipairs(self.pinsToNudge) do
+                -- It's possible this pin was unattached before this update had a chance to run.
+                if targetPin:GetMap() == self then
+                    self:CalculatePinNudging(targetPin)
+                end
+            end
+        end
+
+        self.pinNudgingDirty = false
+        wipe(self.pinsToNudge)
+    end
+else
+    function UpdatePinNudging(self)
+        if not self.pinNudgingDirty and #self.pinsToNudge == 0 then
+            return
+        end
+
+        if self.pinNudgingDirty then
+            for targetPin in self:EnumerateAllPins() do
+                self:CalculatePinNudging(targetPin)
+            end
+        else
+            for _, targetPin in ipairs(self.pinsToNudge) do
                 self:CalculatePinNudging(targetPin)
             end
         end
-    end
 
-    self.pinNudgingDirty = false
-    wipe(self.pinsToNudge)
+        self.pinNudgingDirty = false
+        wipe(self.pinsToNudge)
+    end
 end
 
 function AddWorldQuest(self, info)
