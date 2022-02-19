@@ -16,14 +16,18 @@ local ORIGIN_WIDTH, ORIGIN_HEIGHT = 250, 250
 local ORIGIN_AddWorldQuest
 local _WorldQuestDataProvider
 
-local ENTER_TASK_ID = 0
+local ENTER_TASK_ID     = 0
 
 local _IncludeMinimap, _MinimapControlled, _MinimapOriginalSize
 
 local Enum              = _G.Enum
 local _InBattleField    = false
 local MinimapLoc, MinimapParent, MinimapStrata, MinimapLevel
-export { min = math.min }
+
+export {
+    min                 = math.min,
+    GetAtlasInfo        = _G.GetAtlasInfo or C_Texture.GetAtlasInfo,
+}
 
 WORLD_QUEST_PIN_LIST    = List()
 
@@ -1190,26 +1194,26 @@ function RefreshVisuals(self)
     self.RewardRing:Hide()
 
     if self.worldQuestType == Enum.QuestTag.PVP then
-        local _, width, height = C_Texture.GetAtlasInfo("worldquest-icon-pvp-ffa")
+        local _, width, height = GetAtlasInfo("worldquest-icon-pvp-ffa")
         self.Texture:SetAtlas("worldquest-icon-pvp-ffa")
         self.Texture:SetSize(width * 2, height * 2)
     elseif self.worldQuestType == Enum.QuestTag.PET_BATTLE then
         self.Texture:SetAtlas("worldquest-icon-petbattle")
         self.Texture:SetSize(26, 22)
     elseif self.worldQuestType == Enum.QuestTag.PROFESSION and WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID] then
-        local _, width, height = C_Texture.GetAtlasInfo(WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID])
+        local _, width, height = GetAtlasInfo(WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID])
         self.Texture:SetAtlas(WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID])
         self.Texture:SetSize(width * 2, height * 2)
     elseif self.worldQuestType == Enum.QuestTag.DUNGEON then
-        local _, width, height = C_Texture.GetAtlasInfo("worldquest-icon-dungeon")
+        local _, width, height = GetAtlasInfo("worldquest-icon-dungeon")
         self.Texture:SetAtlas("worldquest-icon-dungeon")
         self.Texture:SetSize(width * 2, height * 2)
     elseif self.worldQuestType == Enum.QuestTag.RAID then
-        local _, width, height = C_Texture.GetAtlasInfo("worldquest-icon-raid")
+        local _, width, height = GetAtlasInfo("worldquest-icon-raid")
         self.Texture:SetAtlas("worldquest-icon-raid")
         self.Texture:SetSize(width * 2, height * 2)
     elseif self.worldQuestType == Enum.QuestTag.INVASION then
-        local _, width, height = C_Texture.GetAtlasInfo("worldquest-icon-burninglegion")
+        local _, width, height = GetAtlasInfo("worldquest-icon-burninglegion")
         self.Texture:SetAtlas("worldquest-icon-burninglegion")
         self.Texture:SetSize(width * 2, height * 2)
     else

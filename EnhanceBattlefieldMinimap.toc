@@ -1,7 +1,7 @@
 ## Interface: 90105
 ## Interface-Retail: 90105
-## Interface-Classic: 11400
-## Interface-BCC: 20502
+## Interface-Classic: 11402
+## Interface-BCC: 20503
 ## Title: EnhanceBattlefieldMinimap
 ## Author: kurapica125@outlook.com
 ## Version: @project-version@
