@@ -14,6 +14,7 @@ import "System.Reactive"
 local OriginOnMouseWheel
 local ORIGIN_WIDTH, ORIGIN_HEIGHT = 250, 250
 local ORIGIN_AddWorldQuest
+local ORIGIN_Dataprovider_Hide
 local _WorldQuestDataProvider
 
 local ENTER_TASK_ID     = 0
@@ -606,6 +607,13 @@ function AddRestDataProvider(self)
         worldQuestDataProvider.AddWorldQuest = AddWorldQuest
         self:AddDataProvider(worldQuestDataProvider)
         _WorldQuestDataProvider = worldQuestDataProvider
+
+        ORIGIN_Dataprovider_Hide = worldQuestDataProvider.OnHide
+        worldQuestDataProvider.OnHide = DataProviderHide
+
+        if BattlefieldMapFrame:IsShown() then
+            worldQuestDataProvider.ticker = worldQuestDataProvider.ticker or C_Timer.NewTicker(0.5, function() worldQuestDataProvider:RefreshAllData() end)
+        end
     else
         self:AddDataProvider(CreateFromMixins(BattlefieldFlagDataProviderMixin));
         self:AddDataProvider(CreateFromMixins(GossipDataProviderMixin));
@@ -1184,8 +1192,8 @@ function RefreshVisuals(self)
         end
     end
 
-    local bountyQuestID = self.dataProvider:GetBountyQuestID()
-    self.BountyRing:SetShown(bountyQuestID and IsQuestCriteriaForBounty(questID, bountyQuestID))
+    local bountyQuestID = self.dataProvider:GetBountyInfo()
+    self.BountyRing:SetShown(bountyQuestID and C_QuestLog.IsQuestCriteriaForBounty(questID, bountyQuestID))
 
     --if self.dataProvider:IsMarkingActiveQuests() and C_QuestLog.IsOnQuest(questID) then
     --    self.Texture:SetAtlas("worldquest-questmarker-questionmark")
@@ -1193,26 +1201,26 @@ function RefreshVisuals(self)
     --else
     self.RewardRing:Hide()
 
-    if self.worldQuestType == Enum.QuestTag.PVP then
+    if self.worldQuestType == Enum.QuestTagType.PvP then
         local _, width, height = GetAtlasInfo("worldquest-icon-pvp-ffa")
         self.Texture:SetAtlas("worldquest-icon-pvp-ffa")
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == Enum.QuestTag.PET_BATTLE then
+    elseif self.worldQuestType == Enum.QuestTagType.PetBattle then
         self.Texture:SetAtlas("worldquest-icon-petbattle")
         self.Texture:SetSize(26, 22)
-    elseif self.worldQuestType == Enum.QuestTag.PROFESSION and WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID] then
+    elseif self.worldQuestType == Enum.QuestTagType.Profession and WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID] then
         local _, width, height = GetAtlasInfo(WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID])
         self.Texture:SetAtlas(WORLD_QUEST_ICONS_BY_PROFESSION[tradeskillLineID])
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == Enum.QuestTag.DUNGEON then
+    elseif self.worldQuestType == Enum.QuestTagType.Dungeon then
         local _, width, height = GetAtlasInfo("worldquest-icon-dungeon")
         self.Texture:SetAtlas("worldquest-icon-dungeon")
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == Enum.QuestTag.RAID then
+    elseif self.worldQuestType == Enum.QuestTagType.Raid then
         local _, width, height = GetAtlasInfo("worldquest-icon-raid")
         self.Texture:SetAtlas("worldquest-icon-raid")
         self.Texture:SetSize(width * 2, height * 2)
-    elseif self.worldQuestType == Enum.QuestTag.INVASION then
+    elseif self.worldQuestType == Enum.QuestTagType.Invasion then
         local _, width, height = GetAtlasInfo("worldquest-icon-burninglegion")
         self.Texture:SetAtlas("worldquest-icon-burninglegion")
         self.Texture:SetSize(width * 2, height * 2)
@@ -1253,6 +1261,11 @@ function RefreshVisuals(self)
             self.Texture:SetSize(12, 30)
         end
     end
+end
+
+function DataProviderHide(self)
+    self.ticker = self.ticker or C_Timer.NewTicker(0.5, function() self:RefreshAllData() end)
+    ORIGIN_Dataprovider_Hide(self)
 end
 
 -- Dropdown Menu
