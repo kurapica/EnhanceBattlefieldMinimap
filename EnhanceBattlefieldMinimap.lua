@@ -27,7 +27,26 @@ local MinimapLoc, MinimapParent, MinimapStrata, MinimapLevel
 
 export {
     min                 = math.min,
-    GetAtlasInfo        = _G.GetAtlasInfo or C_Texture.GetAtlasInfo,
+    GetAtlasInfo        = _G.GetAtlasInfo or (function()
+        local getAtlasInfo = C_Texture.GetAtlasInfo
+        local cache     = {}
+
+        return function (atlas)
+            local info  = cache[atlas]
+            if not info then
+                local f,w,h = getAtlasInfo(atlas)
+                if type(f) == "table" then
+                    info    = f
+                else
+                    info    = { file = f, width = w, height = h }
+                end
+                cache[atlas]= info
+            end
+            if info then
+                return info.file, info.width, info.height
+            end
+        end
+    end)()
 }
 
 WORLD_QUEST_PIN_LIST    = List()
