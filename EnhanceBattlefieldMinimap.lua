@@ -606,16 +606,19 @@ end
 
 function AddRestDataProvider(self)
     if Scorpio.IsRetail then
-        self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(InvasionDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(BannerDataProvider))
-        self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin))
-        self:AddDataProvider(CreateFromMixins(WaypointLocationDataProviderMixin))
+        self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(ContentTrackingDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(InvasionDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(BannerDataProvider));
+        self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(MapIndicatorQuestDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(WaypointLocationDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(DragonridingRaceDataProviderMixin));
 
         local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
         worldQuestDataProvider:SetMatchWorldMapFilters(true)
@@ -634,10 +637,22 @@ function AddRestDataProvider(self)
             worldQuestDataProvider.ticker = worldQuestDataProvider.ticker or C_Timer.NewTicker(0.5, function() worldQuestDataProvider:RefreshAllData() end)
         end
     else
-        self:AddDataProvider(CreateFromMixins(BattlefieldFlagDataProviderMixin));
+        --[[self:AddDataProvider(CreateFromMixins(BattlefieldFlagDataProviderMixin));
         self:AddDataProvider(CreateFromMixins(GossipDataProviderMixin));
         self:AddDataProvider(CreateFromMixins(FlightPointDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(AreaPOIDataProviderMixin));
+        self:AddDataProvider(CreateFromMixins(AreaPOIDataProviderMixin));--]]
+
+        self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin));
+        if _G.ClassicExpansionAtLeast(_G.LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
+            self:AddDataProvider(CreateFromMixins(VehicleDataProviderMixin));
+        end
+        if _G.ClassicExpansionAtLeast(_G.LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
+            self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin));
+        end
+        if _G.ClassicExpansionAtLeast(_G.LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
+            self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin));
+        end
+        self:AddDataProvider(CreateFromMixins(DigSiteDataProviderMixin));
     end
 
     areaLabelDataProvider = CreateFromMixins(AreaLabelDataProviderMixin)
@@ -645,19 +660,23 @@ function AddRestDataProvider(self)
     self:AddDataProvider(areaLabelDataProvider)
 
     local pinFrameLevelsManager = self:GetPinFrameLevelsManager()
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_BLOB")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_INVASION")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SELECTABLE_GRAVEYARD")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_CONTRIBUTION_COLLECTOR")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_STORY_LINE")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WORLD_QUEST_PING")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WORLD_QUEST", 500)
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_ACTIVE_QUEST", C_QuestLog.GetMaxNumQuests())
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SUPER_TRACKED_QUEST")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_BONUS_OBJECTIVE")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_AREA_POI_BANNER")
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WAYPOINT_LOCATION")
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_EVENT_OVERLAY");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_BLOB");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_INVASION");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SELECTABLE_GRAVEYARD");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_DRAGONRIDING_RACE");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_CONTRIBUTION_COLLECTOR");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_STORY_LINE", 6);
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WORLD_QUEST", 500);
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_PING");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_TRACKED_CONTENT");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_ACTIVE_QUEST", C_QuestLog.GetMaxNumQuests());
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SUPER_TRACKED_CONTENT");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SUPER_TRACKED_QUEST");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_BONUS_OBJECTIVE");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WAYPOINT_LOCATION");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_AREA_POI_BANNER");
 
     pinFrameLevelsManager.definitions.PIN_FRAME_LEVEL_GROUP_MEMBER = nil
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GROUP_MEMBER")

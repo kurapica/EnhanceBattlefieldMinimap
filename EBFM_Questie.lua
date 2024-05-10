@@ -42,9 +42,14 @@ function EBFM_DATAPROVIDER_INIT(map)
 
     _Enabled            = true
 
+    if not IsAddOnLoaded("Blizzard_WorldMap") then
+        LoadAddOn("Blizzard_WorldMap")
+    else
+    end
+
     Continue(function()
         -- Don't know when questie map will show icons, just a try
-        for i = 1, 3 do
+        for i = 1, 10 do
             Delay(4)
             if not WorldMapFrame:IsShown() then
                 WorldMapFrame_OnHide()
@@ -88,6 +93,11 @@ end
 
 function WorldMapFrame_OnHide(self)
     _Enabled = true
+
+    local mapID = MapUtil.GetDisplayableMapForPlayer();
+    WorldMapFrame:SetMapID(mapID);
+    MapCanvasMixin.OnShow(WorldMapFrame)
+
     pins_worldmapProvider.forceUpdate = true
     worldmapProvider:RefreshAllData()
 end
