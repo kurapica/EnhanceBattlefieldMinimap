@@ -9,7 +9,7 @@
 ## Version: @project-version@
 ## Notes: Enhance the Battlefield Minimap(Zone map) with several features, use /ebfm for help.
 ## Dependencies: Blizzard_BattlefieldMap, Scorpio
-## OptionalDeps: Blizzard_ObjectiveTracker, HandyNotes, TomTom
+## OptionalDeps: Blizzard_ObjectiveTracker, HandyNotes, TomTom, RareScanner
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: EnhanceBattlefieldMinimap_GlobalDB
@@ -31,3 +31,4 @@ EBFM_Questie.lua
 EBFM_PING.xml
 EBFM_TomTom.lua
 EBFM_HereBeDragons.lua
+EBFM_RareScanner.lua
