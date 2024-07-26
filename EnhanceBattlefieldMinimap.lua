@@ -796,9 +796,9 @@ function LockOnPlayer(self)
     Next() Next()
 
     while self:IsVisible() and (not self:IsMouseOver() or (_SVDB.UseAltOnly and not IsAltKeyDown())) do
-        local x, y              = GetPlayerMapPos()
+        local ok, x, y              = pcall(GetPlayerMapPos)
 
-        if x then
+        if ok and x then
             local minX, maxX, minY, maxY = self:CalculateScrollExtentsAtScale(self:GetCanvasScale())
             local cx            = Clamp(x, minX, maxX)
             local cy            = Clamp(y, minY, maxY)
