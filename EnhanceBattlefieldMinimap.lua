@@ -150,6 +150,7 @@ function OnEnable(self)
 
     if not IsAddOnLoaded("Blizzard_BattlefieldMap") then
         while NextEvent("ADDON_LOADED") ~= "Blizzard_BattlefieldMap" do end
+        Next()
     end
 
     BFMScrollContainer  = BattlefieldMapFrame.ScrollContainer
@@ -157,7 +158,6 @@ function OnEnable(self)
     if not BattlefieldMapFrame:IsShown() then
         Next(Observable.From(Frame(BattlefieldMapFrame).OnShow))
     end
-    Delay(1)
 
     if Scorpio.IsRetail then
         ORDER_RESOURCES_CURRENCY_ID = 1220
