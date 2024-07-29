@@ -5,6 +5,10 @@
 -- Create Date :  2018/07/19                             --
 --========================================================--
 
+local function GetMapPos(mapId, x, y)
+    return C_Map.GetWorldPosFromMapPos(mapId, { x = x, y = y })
+end
+
 --========================================================--
 Scorpio            "EnhanceBattlefieldMinimap"       "2.0.1"
 --========================================================--
@@ -125,7 +129,7 @@ function OnLoad(self)
     _SVGlobal:SetDefault(default)
     _SVChar:SetDefault(default)
 
-    _SVChar:SetDefault {
+    _SVChar:SetDefault  {
         CanvasScale     = 1.0,
         ZoomTarget      = 1.0,
         UseGlobal       = false,
@@ -146,7 +150,6 @@ function OnEnable(self)
 
     if not IsAddOnLoaded("Blizzard_BattlefieldMap") then
         while NextEvent("ADDON_LOADED") ~= "Blizzard_BattlefieldMap" do end
-        Next()
     end
 
     BFMScrollContainer  = BattlefieldMapFrame.ScrollContainer
@@ -154,6 +157,7 @@ function OnEnable(self)
     if not BattlefieldMapFrame:IsShown() then
         Next(Observable.From(Frame(BattlefieldMapFrame).OnShow))
     end
+    Delay(1)
 
     if Scorpio.IsRetail then
         ORDER_RESOURCES_CURRENCY_ID = 1220
@@ -584,8 +588,8 @@ function GetPlayerMapPos()
     local rects                 = MapRects[mapid]
 
     if rects == nil then
-        local _, topleft        = C_Map.GetWorldPosFromMapPos(mapid, CreateVector2D(0,0))
-        local _, bottomright    = C_Map.GetWorldPosFromMapPos(mapid, CreateVector2D(1,1))
+        local _, topleft        = GetMapPos(mapid, 0, 0)
+        local _, bottomright    = GetMapPos(mapid, 1, 1)
 
         if topleft and bottomright then
             bottomright:Subtract(topleft)
@@ -606,19 +610,58 @@ end
 
 function AddRestDataProvider(self)
     if Scorpio.IsRetail then
-        self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(ContentTrackingDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(InvasionDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(BannerDataProvider));
-        self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(MapIndicatorQuestDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(WaypointLocationDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(DragonridingRaceDataProviderMixin));
+        if _G.WorldMap_EventOverlayDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin));
+        end
+
+        if _G.StorylineQuestDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin));
+        end
+
+        if _G.BonusObjectiveDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin));
+        end
+
+        if _G.QuestBlobDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin));
+        end
+
+        if _G.QuestDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin));
+        end
+
+        if _G.ContentTrackingDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(ContentTrackingDataProviderMixin));
+        end
+
+        if _G.InvasionDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(InvasionDataProviderMixin));
+        end
+
+        if _G.GarrisonPlotDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin));
+        end
+
+        if _G.BannerDataProvider then
+            self:AddDataProvider(CreateFromMixins(BannerDataProvider));
+        end
+
+        if _G.ContributionCollectorDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin));
+        end
+
+        if _G.MapIndicatorQuestDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(MapIndicatorQuestDataProviderMixin));
+        end
+
+        if _G.WaypointLocationDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(WaypointLocationDataProviderMixin));
+        end
+
+        if _G.DragonridingRaceDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(DragonridingRaceDataProviderMixin));
+        end
+
 
         local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
         worldQuestDataProvider:SetMatchWorldMapFilters(true)
