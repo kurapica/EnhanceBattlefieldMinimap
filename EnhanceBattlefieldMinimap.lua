@@ -1244,15 +1244,13 @@ function AddWorldQuest(self, info)
         WORLD_QUEST_PIN_LIST:Insert(pin)
 
         pin:SetScalingLimits(1, _SVDB.WorldQuestScale, _SVDB.WorldQuestScale)
-        if Scorpio.IsRetail then
-            pin.RewardRing = true
-        else
-            pin.RewardRing = pin:CreateTexture("nil", "BACKGROUND")
-            pin.RewardRing:SetPoint("TOPLEFT", -4, 4)
-            pin.RewardRing:SetPoint("BOTTOMRIGHT", 4, -4)
-            pin.RewardRing:SetTexture("Interface/AddOns/EnhanceBattlefieldMinimap/resource/ring.tga")
-            pin.RewardRing:Hide()
+        pin.RewardRing = pin:CreateTexture("nil", "BACKGROUND")
+        pin.RewardRing:SetPoint("TOPLEFT", -4, 4)
+        pin.RewardRing:SetPoint("BOTTOMRIGHT", 4, -4)
+        pin.RewardRing:SetTexture("Interface/AddOns/EnhanceBattlefieldMinimap/resource/ring.tga")
+        pin.RewardRing:Hide()
 
+        if not Scorpio.IsRetail then
             pin.RefreshVisuals = RefreshVisuals
         end
     end
