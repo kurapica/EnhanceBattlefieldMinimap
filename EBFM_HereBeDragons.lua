@@ -5,11 +5,12 @@
 -- Create Date :  2019/08/31                              --
 --========================================================--
 
-if not (IsAddOnLoaded("ClassicCodex") or IsAddOnLoaded("TomTom")) then return end
 
 --========================================================--
 Scorpio    "EnhanceBattlefieldMinimap.HereBeDragons" "1.0.0"
 --========================================================--
+
+if not (IsAddOnLoaded("ClassicCodex") or IsAddOnLoaded("TomTom")) then return end
 
 local HBD_Pins
 
