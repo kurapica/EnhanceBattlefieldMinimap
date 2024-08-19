@@ -608,6 +608,7 @@ function GetPlayerMapPos()
     return y / rects[4], x / rects[3]
 end
 
+__Async__()
 function AddRestDataProvider(self)
     if Scorpio.IsRetail then
         if _G.WorldMap_EventOverlayDataProviderMixin then
@@ -746,6 +747,13 @@ function AddRestDataProvider(self)
         end
 
         return pin
+    end
+
+    -- make sure all data provider start
+    if BattlefieldMapFrame:IsShown() then
+        BattlefieldMapFrame:Hide()
+        Delay(0.1)
+        BattlefieldMapFrame:Show()
     end
 
     Scorpio.FireSystemEvent("EBFM_DATAPROVIDER_INIT", self)
