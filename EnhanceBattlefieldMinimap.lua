@@ -618,6 +618,10 @@ function AddRestDataProvider(self)
             self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin));
         end
 
+        if _G.QuestOfferDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(QuestOfferDataProviderMixin));
+        end
+
         if _G.BonusObjectiveDataProviderMixin then
             self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin));
         end
@@ -640,6 +644,10 @@ function AddRestDataProvider(self)
 
         if _G.GarrisonPlotDataProviderMixin then
             self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin));
+        end
+
+        if _G.DelveEntranceDataProviderMixin then
+            self:AddDataProvider(CreateFromMixins(DelveEntranceDataProviderMixin));
         end
 
         if _G.BannerDataProvider then
@@ -706,11 +714,16 @@ function AddRestDataProvider(self)
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_EVENT_OVERLAY");
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT");
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_BLOB");
+    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_DELVE_ENTRANCE");
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_INVASION");
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SELECTABLE_GRAVEYARD");
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_DRAGONRIDING_RACE");
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_CONTRIBUTION_COLLECTOR");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_STORY_LINE", 6);
+    if _G.QuestOfferDataProviderMixin then
+        pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_OFFER", _G.QuestOfferDataProviderMixin.PIN_LEVEL_RANGE);
+    else
+        pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_STORY_LINE", 6);
+    end
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WORLD_QUEST", 500);
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_PING");
     pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_TRACKED_CONTENT");
