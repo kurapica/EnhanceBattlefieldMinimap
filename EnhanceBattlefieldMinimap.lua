@@ -610,68 +610,49 @@ end
 
 __Async__()
 function AddRestDataProvider(self)
-    if Scorpio.IsRetail then
-        if _G.WorldMap_EventOverlayDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(WorldMap_EventOverlayDataProviderMixin));
+    -- recreate
+    self.pinFrameLevelsManager  = CreateFromMixins(MapCanvasPinFrameLevelsManagerMixin);
+    self.pinFrameLevelsManager:Initialize();
+
+    areaLabelDataProvider       = CreateFromMixins(AreaLabelDataProviderMixin)
+    areaLabelDataProvider:SetOffsetY(-10)
+    self:AddDataProvider(areaLabelDataProvider)
+
+    local oldAcquirePin         = self.AcquirePin
+    self.AcquirePin             = function(self, pinTemplate, ...)
+        local pin               = oldAcquirePin(self, pinTemplate, ...)
+
+        if pin then
+            Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pinTemplate, pin)
         end
 
-        if _G.StorylineQuestDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(StorylineQuestDataProviderMixin));
+        return pin
+    end
+
+    local originAddDataProvider = self.AddDataProvider
+    self.AddDataProvider        = function(self, dataProvider)
+        -- match data providers by the methods
+        if self.dataProviders then
+            for old in pairs(self.dataProviders) do
+                local m         = true
+                for k, v in pairs(_G.MapCanvasDataProviderMixin) do
+                    if type(v) == "function" and old[k] ~= dataProvider[k] then
+                        m       = false
+                        break
+                    end
+                end
+                if m then return end
+            end
         end
 
-        if _G.QuestOfferDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(QuestOfferDataProviderMixin));
-        end
+        return originAddDataProvider(self, dataProvider)
+    end
 
-        if _G.BonusObjectiveDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin));
-        end
+    -- re-init as world map
+    _G.WorldMapMixin.AddStandardDataProviders(self)
+    self.AddDataProvider        = originAddDataProvider
 
-        if _G.QuestBlobDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin));
-        end
-
-        if _G.QuestDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin));
-        end
-
-        if _G.ContentTrackingDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(ContentTrackingDataProviderMixin));
-        end
-
-        if _G.InvasionDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(InvasionDataProviderMixin));
-        end
-
-        if _G.GarrisonPlotDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(GarrisonPlotDataProviderMixin));
-        end
-
-        if _G.DelveEntranceDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(DelveEntranceDataProviderMixin));
-        end
-
-        if _G.BannerDataProvider then
-            self:AddDataProvider(CreateFromMixins(BannerDataProvider));
-        end
-
-        if _G.ContributionCollectorDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(ContributionCollectorDataProviderMixin));
-        end
-
-        if _G.MapIndicatorQuestDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(MapIndicatorQuestDataProviderMixin));
-        end
-
-        if _G.WaypointLocationDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(WaypointLocationDataProviderMixin));
-        end
-
-        if _G.DragonridingRaceDataProviderMixin then
-            self:AddDataProvider(CreateFromMixins(DragonridingRaceDataProviderMixin));
-        end
-
-
+    --[[if Scorpio.IsRetail then
         local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
         worldQuestDataProvider:SetMatchWorldMapFilters(true)
         worldQuestDataProvider:SetUsesSpellEffect(true)
@@ -688,71 +669,12 @@ function AddRestDataProvider(self)
         if BattlefieldMapFrame:IsShown() then
             worldQuestDataProvider.ticker = worldQuestDataProvider.ticker or C_Timer.NewTicker(0.5, function() worldQuestDataProvider:RefreshAllData() end)
         end
-    else
-        --[[self:AddDataProvider(CreateFromMixins(BattlefieldFlagDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(GossipDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(FlightPointDataProviderMixin));
-        self:AddDataProvider(CreateFromMixins(AreaPOIDataProviderMixin));--]]
-
-        self:AddDataProvider(CreateFromMixins(BonusObjectiveDataProviderMixin));
-        if _G.ClassicExpansionAtLeast(_G.LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
-            self:AddDataProvider(CreateFromMixins(VehicleDataProviderMixin));
-        end
-        if _G.ClassicExpansionAtLeast(_G.LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
-            self:AddDataProvider(CreateFromMixins(QuestBlobDataProviderMixin));
-        end
-        if _G.ClassicExpansionAtLeast(_G.LE_EXPANSION_WRATH_OF_THE_LICH_KING) then
-            self:AddDataProvider(CreateFromMixins(QuestDataProviderMixin));
-        end
-        self:AddDataProvider(CreateFromMixins(DigSiteDataProviderMixin));
-    end
-
-    areaLabelDataProvider = CreateFromMixins(AreaLabelDataProviderMixin)
-    areaLabelDataProvider:SetOffsetY(-10)
-    self:AddDataProvider(areaLabelDataProvider)
-
-    local pinFrameLevelsManager = self:GetPinFrameLevelsManager()
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_EVENT_OVERLAY");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GARRISON_PLOT");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_BLOB");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_DELVE_ENTRANCE");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_INVASION");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SELECTABLE_GRAVEYARD");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_DRAGONRIDING_RACE");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_CONTRIBUTION_COLLECTOR");
-    if _G.QuestOfferDataProviderMixin then
-        pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_OFFER", _G.QuestOfferDataProviderMixin.PIN_LEVEL_RANGE);
-    else
-        pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_STORY_LINE", 6);
-    end
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WORLD_QUEST", 500);
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_QUEST_PING");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_TRACKED_CONTENT");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_ACTIVE_QUEST", C_QuestLog.GetMaxNumQuests());
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SUPER_TRACKED_CONTENT");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_SUPER_TRACKED_QUEST");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_BONUS_OBJECTIVE");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_WAYPOINT_LOCATION");
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_AREA_POI_BANNER");
-
-    pinFrameLevelsManager.definitions.PIN_FRAME_LEVEL_GROUP_MEMBER = nil
-    pinFrameLevelsManager:AddFrameLevel("PIN_FRAME_LEVEL_GROUP_MEMBER")
-
-    local oldAcquirePin         = self.AcquirePin
-    self.AcquirePin             = function(self, pinTemplate, ...)
-        local pin               = oldAcquirePin(self, pinTemplate, ...)
-
-        if pin then
-            Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pinTemplate, pin)
-        end
-
-        return pin
-    end
+    end--]]
 
     -- make sure all data provider start
     if BattlefieldMapFrame:IsShown() then
         BattlefieldMapFrame:Hide()
-        Delay(0.1)
+        Next()
         BattlefieldMapFrame:Show()
     end
 
