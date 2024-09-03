@@ -682,7 +682,11 @@ function AddRestDataProvider(self)
 end
 
 function UpdatePlayerScale()
-    BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("player", BATTLEFIELD_MAP_PLAYER_SIZE * _SVDB.PlayerScale)
+    if _MinimapControlled then
+        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("player", 0)
+    else
+        BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("player", BATTLEFIELD_MAP_PLAYER_SIZE * _SVDB.PlayerScale)
+    end
 
     if BattlefieldMapOptions.showPlayers then
         BattlefieldMapFrame.groupMembersDataProvider:SetUnitPinSize("party", BATTLEFIELD_MAP_PARTY_MEMBER_SIZE * _SVDB.PartyScale)
@@ -895,7 +899,7 @@ function Minimap_OnEnter(self)
 
     if _MinimapControlled and BFMScrollContainer:IsVisible() then
         Minimap:SetAlpha(1)
-        Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
+        --Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
 
         while Minimap:IsMouseOver() and _MinimapControlled do Next() end
         if not _MinimapControlled then return end
@@ -911,14 +915,14 @@ function Minimap_OnEnter(self)
 
         if Minimap:IsMouseOver() or not _MinimapControlled then
             Minimap:SetAlpha(1)
-            Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
+            --Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
         else
             Minimap:SetAlpha(0)
-            Minimap:SetPlayerTexture([[]])
+            --Minimap:SetPlayerTexture([[]])
         end
     else
         Minimap:SetAlpha(1)
-        Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
+        --Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
     end
 end
 
@@ -988,6 +992,7 @@ function TryInitMinimap()
             end
         end
 
+        UpdatePlayerScale()
         Minimap:EnableMouse(not _SVDB.BlockEmbedMap)
         Minimap:SetSize(_SVDB.MinimapSize, _SVDB.MinimapSize)
     end
@@ -1007,7 +1012,7 @@ function SendBackMinimap()
         Minimap:SetFrameStrata(MinimapStrata)
         Minimap:SetFrameLevel(MinimapLevel)
         Minimap:SetAlpha(1)
-        Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
+        --Minimap:SetPlayerTexture([[Interface\Minimap\MinimapArrow]])
         Minimap:ClearAllPoints()
         Minimap:SetSize(_MinimapOriginalSize.width, _MinimapOriginalSize.height)
         for i, v in ipairs(MinimapLoc) do
@@ -1017,6 +1022,7 @@ function SendBackMinimap()
             MinimapBackdrop:Show()
         end
     end
+    UpdatePlayerScale()
 end
 
 function UpdateZoneText()
