@@ -9,7 +9,7 @@
 Scorpio     "EnhanceBattlefieldMinimap.HandyNotes"   "2.0.0"
 --========================================================--
 
-if not (Scorpio.IsRetail and IsAddOnLoaded("HandyNotes")) then return end
+if not IsAddOnLoaded("HandyNotes") then return end
 
 export { tinsert = table.insert }
 
