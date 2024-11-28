@@ -40,6 +40,10 @@ function EBFM_DATAPROVIDER_INIT(map)
     worldmapPinsPool        = cloneMethod(pins_worldmapPinsPool, _G.CreateFramePool("FRAME"))
     worldmapProvider        = cloneMethod(pins_worldmapProvider, _G.CreateFromMixins(MapCanvasDataProviderMixin))
 
+    worldmapPinsPool.activeObjects = {}
+    worldmapPinsPool.inactiveObjects = {}
+    worldmapPinsPool.activeObjectCount = 0
+
     worldmapPinsPool.parent = map:GetCanvas()
     map.pinPools["HereBeDragonsPinsTemplate"] = worldmapPinsPool
 

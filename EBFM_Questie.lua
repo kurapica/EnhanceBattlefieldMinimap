@@ -25,6 +25,9 @@ pins_worldmapProvider       = HBD_Pins.worldmapProvider
 
 worldmapPinsPool            = cloneMethod(pins_worldmapPinsPool, _G.CreateFramePool("FRAME"))
 worldmapProvider            = cloneMethod(pins_worldmapProvider, _G.CreateFromMixins(MapCanvasDataProviderMixin))
+worldmapPinsPool.activeObjects = {}
+worldmapPinsPool.inactiveObjects = {}
+worldmapPinsPool.activeObjectCount = 0
 
 __SystemEvent__()
 function EBFM_DATAPROVIDER_INIT(map)
@@ -44,7 +47,6 @@ function EBFM_DATAPROVIDER_INIT(map)
 
     if not IsAddOnLoaded("Blizzard_WorldMap") then
         LoadAddOn("Blizzard_WorldMap")
-    else
     end
 
     Continue(function()
