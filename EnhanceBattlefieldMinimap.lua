@@ -195,6 +195,7 @@ function OnEnable(self)
     OriginOnMouseWheel  = BFMScrollContainer:GetScript("OnMouseWheel")
     BFMScrollContainer:SetScript("OnMouseWheel", Container_OnMouseWheel)
     BattlefieldMapFrame.BorderFrame:Hide()
+    _Addon:SecureHook(BFMScrollContainer, "CreateZoomLevels")
 
     BattlefieldMapFrameBack = CreateFrame("Frame", nil, BFMScrollContainer)
     BattlefieldMapFrameBack:SetFrameStrata("HIGH")
@@ -652,6 +653,16 @@ function AddRestDataProvider(self)
     _G.WorldMapMixin.AddStandardDataProviders(self)
     self.AddDataProvider        = originAddDataProvider
 
+    -- Fix the world quest error
+    for k, v in pairs(BattlefieldMapFrame.dataProviders) do
+        if k.OnShow == WorldQuestDataProviderMixin.OnShow then
+            if BattlefieldMapFrame:IsShown() then
+                k.ticker = k.ticker or C_Timer.NewTicker(0.5, function() k:RefreshAllData() end)
+            end
+        end
+    end
+
+
     --[[if Scorpio.IsRetail then
         local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
         worldQuestDataProvider:SetMatchWorldMapFilters(true)
@@ -886,6 +897,33 @@ end
 function Container_OnMouseWheel(self, delta)
     OriginOnMouseWheel(self, delta)
     _SVChar.CanvasScale   = BFMScrollContainer:GetCanvasScale()
+end
+
+function CreateZoomLevels(self)
+    local zoomLevels        = self.zoomLevels
+    if not zoomLevels or #zoomLevels == 0 then return end
+
+    local newLevels         = {}
+    local layerIndex, layerCount
+    for i = 1, #zoomLevels + 1 do
+        if i > #zoomLevels or layerIndex ~= zoomLevels[i].layerIndex then
+            if layerIndex then
+                while layerCount < 8 do
+                    table.insert(newLevels, { scale = newLevels[#newLevels].scale * 1.2, layerIndex = layerIndex  })
+                    layerCount = layerCount + 1
+                end
+            end
+
+            if i > #zoomLevels then break end
+            layerIndex      = zoomLevels[i].layerIndex
+            layerCount      = 1
+        else
+            layerCount      = layerCount + 1
+        end
+        table.insert(newLevels, zoomLevels[i])
+    end
+    print("update CreateZoomLevels", #newLevels)
+    self.zoomLevels         = newLevels
 end
 
 function BFMResizer_OnResized(self)
