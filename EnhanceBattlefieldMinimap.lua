@@ -922,7 +922,6 @@ function CreateZoomLevels(self)
         end
         table.insert(newLevels, zoomLevels[i])
     end
-    print("update CreateZoomLevels", #newLevels)
     self.zoomLevels         = newLevels
 end
 
