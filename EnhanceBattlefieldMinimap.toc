@@ -21,6 +21,7 @@ BugFix.lua
 # Localization
 localization\zhCN.lua
 localization\zhTW.lua
+localization\ruRU.lua
 
 # Core
 EnhanceBattlefieldMinimap.lua
