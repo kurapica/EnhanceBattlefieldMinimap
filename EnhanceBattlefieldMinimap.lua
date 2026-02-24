@@ -189,6 +189,7 @@ function OnEnable(self)
     BFMResizer.ResizeTarget = BattlefieldMapFrame
     BFMResizer.OnStopResizing = BFMResizer_OnResized
     Style[BFMResizer].size = Size(24, 24)
+    Style[BFMResizer].visible = not BattlefieldMapOptions.locked
 
     BFMScrollContainer.CalculateViewRect = CalculateViewRect
 
@@ -1348,7 +1349,7 @@ function BattlefieldMapTab_OnClick(self, button)
                 text            = LOCK_BATTLEFIELDMINIMAP,
                 check           = {
                     get         = function() return BattlefieldMapOptions.locked end,
-                    set         = function(value) BattlefieldMapOptions.locked = value end,
+                    set         = function(value) BattlefieldMapOptions.locked = value; Style[BFMResizer].visible = not value end,
                 }
             },
             {
