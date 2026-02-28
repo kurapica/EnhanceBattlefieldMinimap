@@ -620,11 +620,24 @@ function AddRestDataProvider(self)
     areaLabelDataProvider:SetOffsetY(-10)
     self:AddDataProvider(areaLabelDataProvider)
 
-    _Addon:SecureHook(self, "RegisterPin", function(_, pin)
-        if pin then
-            Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pin.pinTemplate, pin)
+    if Scorpio.IsRetail then
+        _Addon:SecureHook(self, "RegisterPin", function(_, pin)
+            if pin then
+                Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pin.pinTemplate, pin)
+            end
+        end)
+    else
+        local oldAcquirePin         = self.AcquirePin
+        self.AcquirePin             = function(self, pinTemplate, ...)
+            local pin               = oldAcquirePin(self, pinTemplate, ...)
+
+            if pin then
+                Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pinTemplate, pin)
+            end
+
+            return pin
         end
-    end)
+    end
 
     local originAddDataProvider = self.AddDataProvider
     self.AddDataProvider        = function(self, dataProvider)
