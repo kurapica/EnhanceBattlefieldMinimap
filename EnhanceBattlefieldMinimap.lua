@@ -124,6 +124,9 @@ function OnLoad(self)
 
         -- Enable the mouse coordinate
         EnableCoordinate= true,
+
+        -- Map Scale
+        MapScale        = 1.0,
     }
 
     _SVGlobal:SetDefault(default)
@@ -175,6 +178,8 @@ function OnEnable(self)
 
     BattlefieldMapFrame:SetShouldNavigateOnClick(true)
     BattlefieldMapFrame.UpdatePinNudging = UpdatePinNudging
+
+    BattlefieldMapFrame:SetScale(_SVDB.MapScale or 1.0)
 
     ORIGIN_WIDTH        = BattlefieldMapFrame:GetWidth()
     ORIGIN_HEIGHT       = BattlefieldMapFrame:GetHeight()
@@ -502,6 +507,12 @@ function ToggleMouseCoordinate(opt)
     else
         return false
     end
+end
+
+__SlashCmd__("ebfm", "scale", _Locale["the scale of the map"])
+function SetMapScale(scale)
+    _SVDB.MapScale = tonumber(scale) or 1.0
+    BattlefieldMapFrame:SetScale(_SVDB.MapScale or 1.0)
 end
 
 ----------------------------------------------
@@ -1425,6 +1436,16 @@ function BattlefieldMapTab_OnClick(self, button)
                     get         = function() return _SVDB.EnableCoordinate end,
                     set         = function(value) ToggleMouseCoordinate(value and "on" or "off") end,
                 }
+            },
+            {
+                text            = _Locale["The scale of the map"],
+                click           = function()
+                    local scale = PickRange(_Locale["The scale of the map"], 0.5, 2, 0.01, _SVDB.MapScale)
+                    if not scale then return end
+
+                    _SVDB.MapScale = scale
+                    BattlefieldMapFrame:SetScale(scale or 1.0)
+                end,
             },
             {
                 text            = _Locale["The Frame Strata"],
