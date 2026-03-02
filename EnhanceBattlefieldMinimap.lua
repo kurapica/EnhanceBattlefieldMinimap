@@ -248,7 +248,7 @@ function OnEnable(self)
         BattlefieldZoneTextFrame:SetWidth(BattlefieldZoneText:GetStringWidth() + 2)
     end)
 
-    BattlefieldZoneText       = BattlefieldZoneTextFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    BattlefieldZoneText       = BattlefieldZoneTextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     BattlefieldZoneText:SetPoint("CENTER")
     BattlefieldZoneText.fonts = { BattlefieldZoneText:GetFont() }
 
