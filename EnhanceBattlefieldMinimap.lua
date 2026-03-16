@@ -632,11 +632,11 @@ function AddRestDataProvider(self)
     self:AddDataProvider(areaLabelDataProvider)
 
     if Scorpio.IsRetail then
-        _Addon:SecureHook(self, "RegisterPin", function(_, pin)
+        --[[_Addon:SecureHook(self, "RegisterPin", function(_, pin)
             if pin then
                 Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pin.pinTemplate, pin)
             end
-        end)
+        end)--]]
     else
         local oldAcquirePin         = self.AcquirePin
         self.AcquirePin             = function(self, pinTemplate, ...)
