@@ -27,4 +27,3 @@ EBFM_Questie.lua
 EBFM_PING.xml
 EBFM_TomTom.lua
 EBFM_HereBeDragons.lua
-EBFM_RareScanner.lua

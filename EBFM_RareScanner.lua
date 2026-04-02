@@ -17,13 +17,7 @@ export { tinsert = table.insert }
 local INITED            = false
 local TARGET_MAP
 
-RareScannerDataProvider = CreateFromMixins({}, RareScannerDataProviderMixin)
-
-for k, v in pairs(_G.MapCanvasDataProviderMixin) do
-    if RareScannerDataProvider[k] == nil then
-        RareScannerDataProvider[k] = v
-    end
-end
+RareScannerDataProvider = CreateFromMixins({}, MapCanvasDataProviderMixin, RareScannerDataProviderMixin)
 
 function OnLoad(self)
     _SVDB:SetDefault {
