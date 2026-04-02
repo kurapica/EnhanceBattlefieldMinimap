@@ -127,6 +127,9 @@ function OnLoad(self)
 
         -- Map Scale
         MapScale        = 1.0,
+
+        -- Enable the player in center
+        PlayerCenter    = true
     }
 
     _SVGlobal:SetDefault(default)
@@ -682,7 +685,6 @@ function AddRestDataProvider(self)
         end
     end
 
-
     --[[if Scorpio.IsRetail then
         local worldQuestDataProvider= CreateFromMixins(WorldMap_WorldQuestDataProviderMixin)
         worldQuestDataProvider:SetMatchWorldMapFilters(true)
@@ -816,7 +818,7 @@ function LockOnPlayer(self)
 
     Next() Next()
 
-    while self:IsVisible() and (not self:IsMouseOver() or (_SVDB.UseAltOnly and not IsAltKeyDown())) do
+    while _SVDB.PlayerCenter and self:IsVisible() and (not self:IsMouseOver() or (_SVDB.UseAltOnly and not IsAltKeyDown())) do
         local ok, x, y              = pcall(GetPlayerMapPos)
 
         if ok and x then
@@ -1414,6 +1416,13 @@ function BattlefieldMapTab_OnClick(self, button)
                 check           = {
                     get         = function() return _SVDB.BlockTab end,
                     set         = function(value) BlockMap(value and "on" or "off") end,
+                }
+            },
+            {
+                text            = _Locale["Lock Player Center"],
+                check           = {
+                    get         = function() return _SVDB.PlayerCenter end,
+                    set         = function(value) _SVDB.PlayerCenter = value end,
                 }
             },
             {
