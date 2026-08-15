@@ -162,7 +162,13 @@ function OnEnable(self)
     BFMScrollContainer  = BattlefieldMapFrame.ScrollContainer
 
     if not BattlefieldMapFrame:IsShown() then
-        Next(Observable.From(Frame(BattlefieldMapFrame).OnShow))
+        if IsRetail then
+            while not BattlefieldMapFrame:IsShown() do
+                Delay(1)
+            end
+        else
+            Next(Observable.From(Frame(BattlefieldMapFrame).OnShow))
+        end
     end
 
     if Scorpio.IsRetail then
