@@ -3,28 +3,43 @@
 --                                                        --
 -- Author      :  kurapica125@outlook.com                 --
 -- Create Date :  2018/07/23                              --
+-- Update Date :  2026/10/07                              --
 --========================================================--
 
 --========================================================--
-Scorpio     "EnhanceBattlefieldMinimap.HandyNotes"   "2.0.0"
+Scorpio     "EnhanceBattlefieldMinimap.HandyNotes"   "2.1.0"
 --========================================================--
-
-if not IsAddOnLoaded("HandyNotes") then return end
 
 export { tinsert = table.insert }
 
 local INITED            = false
 local TARGET_MAP
+local DataProvider
 
-HandyNotes              = HandyNotes
-
-HandyNotesDataProvider  = CreateFromMixins({}, HandyNotes.WorldMapDataProvider)
-
-function OnLoad(self)
+function OnLoad()
     _SVDB:SetDefault {
         ShowHandyNotes  = true,
         HandyNotesScale = 1.0,
     }
+end
+
+__Async__()
+function OnEnable(self)
+    if not IsAddOnLoaded("HandyNotes") then
+        while NextEvent("ADDON_LOADED") ~= "HandyNotes" do end
+        Next()
+    end
+
+    local HandyNotes    = _G.HandyNotes
+    DataProvider        = CreateFromMixins({}, HandyNotes.WorldMapDataProvider)
+
+    self:SecureHook(HandyNotes, "UpdateWorldMapPlugin")
+    self:SecureHook(HandyNotes, "UpdateWorldMap")
+
+    if TARGET_MAP and _SVDB.ShowHandyNotes then
+        TARGET_MAP:AddDataProvider(DataProvider)
+        DataProvider:RefreshAllData()
+    end
 end
 
 __SlashCmd__("ebfm", "handynotes", _Locale["on/off - show HandyNotes's marks"])
@@ -33,17 +48,17 @@ function ToggleHandyNotes(opt)
         if not _SVDB.ShowHandyNotes then
             _SVDB.ShowHandyNotes = true
 
-            if INITED then
-                TARGET_MAP:AddDataProvider(HandyNotesDataProvider)
-                HandyNotesDataProvider:RefreshAllData()
+            if INITED and DataProvider then
+                TARGET_MAP:AddDataProvider(DataProvider)
+                DataProvider:RefreshAllData()
             end
         end
     elseif opt == "off" then
         if _SVDB.ShowHandyNotes then
             _SVDB.ShowHandyNotes = false
 
-            if INITED then
-                TARGET_MAP:RemoveDataProvider(HandyNotesDataProvider)
+            if INITED and DataProvider then
+                TARGET_MAP:RemoveDataProvider(DataProvider)
             end
         end
     else
@@ -55,9 +70,9 @@ __SystemEvent__()
 function EBFM_DATAPROVIDER_INIT(map)
     TARGET_MAP          = map
 
-    if _SVDB.ShowHandyNotes then
-        map:AddDataProvider(HandyNotesDataProvider)
-        HandyNotesDataProvider:RefreshAllData()
+    if _SVDB.ShowHandyNotes and DataProvider then
+        map:AddDataProvider(DataProvider)
+        DataProvider:RefreshAllData()
     end
 
     INITED              = true
@@ -84,8 +99,8 @@ function EBFM_SHOW_MENU(option)
 
                         _SVDB.HandyNotesScale = scale
 
-                        if INITED then
-                            HandyNotesDataProvider:RefreshAllData()
+                        if INITED and DataProvider then
+                            DataProvider:RefreshAllData()
                         end
                     end,
                 },
@@ -102,16 +117,14 @@ function EBFM_PIN_ACQUIRED(template, pin)
     end
 end
 
-__SecureHook__(HandyNotes)
 function UpdateWorldMapPlugin(self, pluginName)
     if INITED and _SVDB.ShowHandyNotes then
-        HandyNotesDataProvider:RefreshPlugin(pluginName)
+        DataProvider:RefreshPlugin(pluginName)
     end
 end
 
-__SecureHook__(HandyNotes)
 function UpdateWorldMap(self)
     if INITED and _SVDB.ShowHandyNotes then
-        HandyNotesDataProvider:RefreshAllData()
+        DataProvider:RefreshAllData()
     end
 end

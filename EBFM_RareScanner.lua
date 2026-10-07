@@ -3,27 +3,40 @@
 --                                                        --
 -- Author      :  kurapica125@outlook.com                 --
 -- Create Date :  2018/07/23                              --
+-- Update Date :  2026/10/07                              --
 --========================================================--
 
 --========================================================--
-Scorpio     "EnhanceBattlefieldMinimap.RareScanner"  "1.0.0"
+Scorpio     "EnhanceBattlefieldMinimap.RareScanner"  "2.0.0"
 --========================================================--
 
-
-if not IsAddOnLoaded("RareScanner") then return end
 
 export { tinsert = table.insert }
 
 local INITED            = false
 local TARGET_MAP
-
-RareScannerDataProvider = CreateFromMixins({}, MapCanvasDataProviderMixin, RareScannerDataProviderMixin)
+local DataProvider
 
 function OnLoad(self)
     _SVDB:SetDefault {
-        ShowRareScanner  = true,
-        RareScannerScale = 1.0,
+        ShowRareScanner = true,
+        RareScannerScale= 1.0,
     }
+end
+
+__Async__()
+function OnEnable(self)
+    if not IsAddOnLoaded("RareScanner") then
+        while NextEvent("ADDON_LOADED") ~= "RareScanner" do end
+        Next()
+    end
+
+    DataProvider        = CreateFromMixins({}, MapCanvasDataProviderMixin, _G.RareScannerDataProviderMixin)
+
+    if TARGET_MAP and _SVDB.ShowRareScanner then
+        TARGET_MAP:AddDataProvider(DataProvider)
+        DataProvider:RefreshAllData()
+    end
 end
 
 __SlashCmd__("ebfm", "rarescanner", _Locale["on/off - show RareScanner's marks"])
@@ -32,17 +45,17 @@ function ToggleRareScanner(opt)
         if not _SVDB.ShowRareScanner then
             _SVDB.ShowRareScanner = true
 
-            if INITED then
-                TARGET_MAP:AddDataProvider(RareScannerDataProvider)
-                RareScannerDataProvider:RefreshAllData()
+            if INITED and DataProvider then
+                TARGET_MAP:AddDataProvider(DataProvider)
+                DataProvider:RefreshAllData()
             end
         end
     elseif opt == "off" then
         if _SVDB.ShowRareScanner then
             _SVDB.ShowRareScanner = false
 
-            if INITED then
-                TARGET_MAP:RemoveDataProvider(RareScannerDataProvider)
+            if INITED and DataProvider then
+                TARGET_MAP:RemoveDataProvider(DataProvider)
             end
         end
     else
@@ -54,9 +67,9 @@ __SystemEvent__()
 function EBFM_DATAPROVIDER_INIT(map)
     TARGET_MAP          = map
 
-    if _SVDB.ShowRareScanner then
-        map:AddDataProvider(RareScannerDataProvider)
-        RareScannerDataProvider:RefreshAllData()
+    if _SVDB.ShowRareScanner and DataProvider then
+        map:AddDataProvider(DataProvider)
+        DataProvider:RefreshAllData()
     end
 
     INITED              = true
@@ -83,8 +96,8 @@ function EBFM_SHOW_MENU(option)
 
                         _SVDB.RareScannerScale = scale
 
-                        if INITED then
-                            RareScannerDataProvider:RefreshAllData()
+                        if INITED and DataProvider then
+                            DataProvider:RefreshAllData()
                         end
                     end,
                 },
