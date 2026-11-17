@@ -28,6 +28,7 @@ local _IncludeMinimap, _MinimapControlled, _MinimapOriginalSize
 local Enum              = _G.Enum
 local _InBattleField    = false
 local MinimapLoc, MinimapParent, MinimapStrata, MinimapLevel
+local isStrictMode      = Scorpio.IsRetail or Scorpio.IsForever
 
 export {
     min                 = math.min,
@@ -106,8 +107,8 @@ function OnLoad(self)
 
         -- Replace pin
         ReplacePlayerPin= false,
-        ReplacePartyPin = not Scorpio.IsRetail,
-        ReplaceRaidPin  = not Scorpio.IsRetail,
+        ReplacePartyPin = not isStrictMode,
+        ReplaceRaidPin  = not isStrictMode,
 
         -- Area Label Scale
         AreaLabelScale  = 0.5,
@@ -288,7 +289,7 @@ function OnEnable(self)
 
     pcall(BFMScrollContainer.SetZoomTarget, BFMScrollContainer, _SVChar.ZoomTarget)
 
-    if not Scorpio.IsRetail then
+    if not isStrictMode then
         pcall(MapCanvasMixin.OnHide, BattlefieldMapFrame)
         MapCanvasMixin.OnShow(BattlefieldMapFrame)
     end
@@ -640,7 +641,7 @@ function AddRestDataProvider(self)
     areaLabelDataProvider:SetOffsetY(-10)
     self:AddDataProvider(areaLabelDataProvider)
 
-    if Scorpio.IsRetail then
+    if isStrictMode then
         --[[_Addon:SecureHook(self, "RegisterPin", function(_, pin)
             if pin then
                 Scorpio.FireSystemEvent("EBFM_PIN_ACQUIRED", pin.pinTemplate, pin)
@@ -751,13 +752,13 @@ function UpdatePinTexture(self)
     if _SVDB.ReplacePartyPin then
         self:SetPinTexture("party", PIN_TEXTURE)
     else
-        self:SetPinTexture("party", not Scorpio.IsRetail and ORIGIN_PARTY_TEXTURE or IsInRaid() and "WhiteDotCircle-RaidBlips" or "WhiteCircle-RaidBlips")
+        self:SetPinTexture("party", not isStrictMode and ORIGIN_PARTY_TEXTURE or IsInRaid() and "WhiteDotCircle-RaidBlips" or "WhiteCircle-RaidBlips")
     end
 
     if _SVDB.ReplaceRaidPin then
         self:SetPinTexture("raid", PIN_TEXTURE)
     else
-        self:SetPinTexture("raid", not Scorpio.IsRetail and ORIGIN_PARTY_TEXTURE or "WhiteCircle-RaidBlips")
+        self:SetPinTexture("raid", not isStrictMode and ORIGIN_PARTY_TEXTURE or "WhiteCircle-RaidBlips")
     end
 end
 
@@ -773,7 +774,7 @@ end
 function ReplacePartyPin()
     local realpin               = BattlefieldMapFrame.groupMembersDataProvider.pin
 
-    if Scorpio.IsRetail then
+    if BattlefieldMapFrame.ExecuteOnAllPins then
         BattlefieldMapFrame:ExecuteOnAllPins(function(pin)
             if pin.UpdateAppearanceData and pin:GetObjectType() == "UnitPositionFrame" then
                 hooksecurefunc(pin, "UpdateAppearanceData", UpdatePinTexture)
@@ -869,9 +870,9 @@ function Container_OnEnter(self)
     if _SVDB.EnableCoordinate then
         while task == ENTER_TASK_ID and self:IsMouseOver() and (not _SVDB.UseAltOnly or IsAltKeyDown()) do
             local x, y  = self:GetCursorPosition()
-            if not Scorpio.IsRetail then
-            x           = x / self:GetScale()
-            y           = y / self:GetScale()
+            if not isStrictMode then
+                x       = x / self:GetScale()
+                y       = y / self:GetScale()
             end
             x           = self:NormalizeHorizontalSize(x / self:GetCanvasScale() - self.Child:GetLeft())
             y           = self:NormalizeVerticalSize(self.Child:GetTop() - y / self:GetCanvasScale())
@@ -1208,47 +1209,32 @@ function CalculateViewRect(self, scale)
     return viewRect
 end
 
-if Scorpio.IsRetail then
-    function UpdatePinNudging(self)
-        if not self.pinNudgingDirty and #self.pinsToNudge == 0 then
-            return
-        end
-
-        if self.pinNudgingDirty then
-            self:ExecuteOnAllPins(function(pin)
-                self:CalculatePinNudging(pin)
-            end)
-        else
-            for _, targetPin in ipairs(self.pinsToNudge) do
-                -- It's possible this pin was unattached before this update had a chance to run.
-                if targetPin:GetMap() == self then
-                    self:CalculatePinNudging(targetPin)
-                end
-            end
-        end
-
-        self.pinNudgingDirty = false
-        wipe(self.pinsToNudge)
+function UpdatePinNudging(self)
+    if not self.pinNudgingDirty and #self.pinsToNudge == 0 then
+        return
     end
-else
-    function UpdatePinNudging(self)
-        if not self.pinNudgingDirty and #self.pinsToNudge == 0 then
-            return
-        end
 
-        if self.pinNudgingDirty then
+    if self.pinNudgingDirty then
+        if self.EnumerateAllPins then
             for targetPin in self:EnumerateAllPins() do
                 self:CalculatePinNudging(targetPin)
             end
         else
-            for _, targetPin in ipairs(self.pinsToNudge) do
+            self:ExecuteOnAllPins(function(pin)
+                self:CalculatePinNudging(pin)
+            end)
+        end
+    else
+        for _, targetPin in ipairs(self.pinsToNudge) do
+            -- It's possible this pin was unattached before this update had a chance to run.
+            if targetPin:GetMap() == self then
                 self:CalculatePinNudging(targetPin)
             end
         end
-
-        self.pinNudgingDirty = false
-        wipe(self.pinsToNudge)
     end
+
+    self.pinNudgingDirty = false
+    wipe(self.pinsToNudge)
 end
 
 function AddWorldQuest(self, info)
@@ -1264,7 +1250,7 @@ function AddWorldQuest(self, info)
         pin.RewardRing:SetTexture("Interface/AddOns/EnhanceBattlefieldMinimap/resource/ring.tga")
         pin.RewardRing:Hide()
 
-        if not Scorpio.IsRetail then
+        if not isStrictMode then
             pin.RefreshVisuals = RefreshVisuals
         end
     end
@@ -1605,7 +1591,7 @@ function BattlefieldMapTab_OnClick(self, button)
             {
                 text            = _Locale["World Quest Scale"] .. " - " .. _SVDB.WorldQuestScale,
                 click           = function() SetWorldQuestScale(PickRange(_Locale["Choose World Quest Scale"], 0.1, 3, 0.1, _SVDB.WorldQuestScale)) end,
-                disabled        = not Scorpio.IsRetail,
+                disabled        = not isStrictMode,
             },
             {
                 text            = _Locale["Border Color"],

@@ -14,7 +14,8 @@ Scorpio     "EnhanceBattlefieldMinimap.Questie" "1.0.0"
 if not IsAddOnLoaded("Questie") then return end
 
 local Questie               = _G.Questie
-local HBD_Pins              = _G.LibStub("HereBeDragonsQuestie-Pins-2.0")
+local get, HBD_Pins         = pcall(_G.LibStub, "HereBeDragonsQuestie-Pins-2.0")
+if not get then return end
 
 local TARGET_MAP
 local INITED                = false
